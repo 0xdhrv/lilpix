@@ -1,5 +1,25 @@
 import "./about.css";
+import "./sweep.ts";
 import { EXPRESSION_NAMES, eyeGrids, ledsFor } from "./expressions.ts";
+
+// Keep the theme in step with the app: the inline script in about/index.html
+// applies it before first paint; this follows changes made in other tabs and
+// changes to the system theme while nothing is saved.
+const dark = matchMedia("(prefers-color-scheme: dark)");
+function applyTheme() {
+  let saved: unknown = null;
+  try {
+    saved = JSON.parse(localStorage.getItem("lilpix:theme") ?? "null");
+  } catch {
+    // Storage blocked or unreadable: follow the system.
+  }
+  document.documentElement.dataset.theme =
+    saved === "light" || saved === "dark" ? saved : dark.matches ? "dark" : "light";
+}
+addEventListener("storage", (event) => {
+  if (event.key === "lilpix:theme" || event.key === null) applyTheme();
+});
+dark.addEventListener("change", applyTheme);
 
 // Fill the expression gallery from the same data the 3D bot uses, so the
 // about page never drifts from the app.

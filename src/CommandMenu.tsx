@@ -12,6 +12,7 @@ import {
 import {
   FogIcon,
   FollowIcon,
+  GithubIcon,
   InfoIcon,
   LedOffIcon,
   LedOnIcon,
@@ -28,6 +29,8 @@ const LEDS_VALUE = "toggle-leds";
 const FOLLOW_VALUE = "toggle-follow";
 const FOG_VALUE = "toggle-fog";
 const ABOUT_VALUE = "link-about";
+const GITHUB_VALUE = "link-github";
+const REPO = "https://github.com/0xdhrv/lilpix";
 
 function PixelEye({ rows }: { rows: string[] }) {
   return (
@@ -171,13 +174,23 @@ function MenuBody({
         <Command.Group heading="lilpix">
           <Command.Item
             value={ABOUT_VALUE}
-            keywords={["about", "help", "info", "credits", "github", "source"]}
+            keywords={["about", "help", "info", "credits"]}
             onSelect={() => location.assign("/about/")}
           >
             <span className="icon">
               <InfoIcon />
             </span>
             <span className="label">About lilpix</span>
+          </Command.Item>
+          <Command.Item
+            value={GITHUB_VALUE}
+            keywords={["github", "source", "code", "repo", "open source"]}
+            onSelect={() => location.assign(REPO)}
+          >
+            <span className="icon">
+              <GithubIcon />
+            </span>
+            <span className="label">View source on GitHub</span>
           </Command.Item>
         </Command.Group>
       </Command.List>

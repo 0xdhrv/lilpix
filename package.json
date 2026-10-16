@@ -4,7 +4,14 @@
   "private": true,
   "description": "A tiny 3D robot with a pixel-art face, built with React Three Fiber.",
   "homepage": "https://lilpix.dhrv.pw",
+  "bugs": {
+    "url": "https://github.com/0xdhrv/lilpix/issues"
+  },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/0xdhrv/lilpix.git"
+  },
   "type": "module",
   "scripts": {
     "dev": "vp dev",
