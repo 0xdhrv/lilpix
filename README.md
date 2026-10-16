@@ -99,6 +99,8 @@ Backdrops work the same way: add one to `BACKGROUNDS` in [`src/backgrounds.ts`](
 
 Pixel type is [Geist Pixel](https://vercel.com/font) by Vercel, under the [SIL Open Font License](src/assets/fonts/OFL.txt).
 
+Inspired by Vercel Ship 2026.
+
 ## License
 
 [MIT](LICENSE)

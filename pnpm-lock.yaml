@@ -196,6 +196,9 @@ importers:
       cmdk:
         specifier: ^1.1.1
         version: 1.1.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      glimm:
+        specifier: ^0.3.1
+        version: 0.3.1(react@19.3.1)
       react:
         specifier: ^19.2.8
         version: 19.3.1
@@ -1215,6 +1218,18 @@ packages:
   get-nonce@1.0.1:
     resolution: {integrity: sha512-FJhYRoDaiatfEkUK8HKlicmu/3SGFD51q3itKDGoSTysQJBnfOcxU5GxnhE1E6soB76MbT0MBtnKJuXyAx+96Q==}
     engines: {node: '>=6'}
+
+  glimm@0.3.1:
+    resolution: {integrity: sha512-7O+Ga+cqqP8FEFDa63X+BXCYKndlnZZEMjTl1DhMfQ3yWweDgl8nC+ImP/zLo351YEn/6WpnOL6jKfvFWmnyDg==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      next: '>=14'
+      react: '>=18'
+    peerDependenciesMeta:
+      next:
+        optional: true
+      react:
+        optional: true
 
   glsl-noise@0.0.0:
     resolution: {integrity: sha512-b/ZCF6amfAUb7dJM/MxRs7AetQEahYzJ8PtgfrmEdtw6uyGOr+ZSGtgjFm6mfsBkxJ4d2W7kg+Nlqzqvn3Bc0w==}
@@ -2463,6 +2478,10 @@ snapshots:
     optional: true
 
   get-nonce@1.0.1: {}
+
+  glimm@0.3.1(react@19.3.1):
+    optionalDependencies:
+      react: 19.3.1
 
   glsl-noise@0.0.0: {}
 
