@@ -70,12 +70,15 @@
               : "light";
       } catch {}
     </script>
-    <script type="module" src="/src/about.ts"></script>
+    <script type="module" src="/src/about.ts" blocking="render"></script>
   </head>
   <body>
     <nav class="nav" aria-label="Site">
       <a href="/">← Back to lilpix</a>
-      <a href="https://github.com/0xdhrv/lilpix">GitHub</a>
+      <span class="flex gap-4">
+        <a href="https://github.com/0xdhrv/lilpix">GitHub</a>
+        <a href="https://x.com/0xdhrv">X</a>
+      </span>
     </nav>
 
     <main class="about">
@@ -174,8 +177,9 @@
         <h2>Open source</h2>
         <p>
           The code is on <a href="https://github.com/0xdhrv/lilpix">GitHub</a> under the MIT
-          license. Adding an expression takes one entry in <code>src/expressions.ts</code> and a
-          sound in <code>src/sounds.ts</code>. The README walks through it.
+          license. Find me on <a href="https://x.com/0xdhrv">X</a>. Adding an expression takes one
+          entry in <code>src/expressions.ts</code> and a sound in <code>src/sounds.ts</code>. The
+          README walks through it.
         </p>
       </section>
 
@@ -193,6 +197,9 @@
 
     <footer class="footer">
       <span>Made by <a href="https://dhrv.pw">Dhruv</a></span>
+      <span>
+        <a href="https://x.com/0xdhrv">X</a> · <a href="https://github.com/0xdhrv/lilpix">GitHub</a>
+      </span>
       <a href="/">lilpix.dhrv.pw</a>
     </footer>
   </body>
