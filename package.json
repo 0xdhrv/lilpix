@@ -19,20 +19,26 @@
     "preview": "vp preview",
     "check": "vp check",
     "lint": "vp lint",
+    "fmt": "vp fmt",
     "og": "\"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome\" --headless=new --hide-scrollbars --log-level=3 --force-device-scale-factor=1 --window-size=1200,630 --allow-file-access-from-files --virtual-time-budget=2000 --screenshot=\"$PWD/public/og.png\" \"file://$PWD/og/og.html\"",
     "loop": "node scripts/loop-svg.ts"
   },
   "dependencies": {
+    "@evilmartians/harmony": "^1.4.0",
     "@phosphor-icons/react": "^2.1.10",
     "@react-three/drei": "^10.7.9",
     "@react-three/fiber": "^9.8.2",
     "@react-three/postprocessing": "^3.2.0",
+    "@tailwindcss/vite": "^4.3.3",
     "@web-kits/audio": "^0.2.0",
     "cmdk": "^1.1.1",
+    "geist": "^1.7.2",
     "glimm": "^0.3.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "tailwindcss": "^4.3.3",
     "three": "^0.186.1",
+    "torph": "^0.1.3",
     "vaul": "^1.1.2"
   },
   "devDependencies": {
@@ -41,6 +47,7 @@
     "@types/react-dom": "^19.2.7",
     "@types/three": "^0.186.0",
     "@vitejs/plugin-react": "^6.1.1",
+    "agentation": "^3.1.2",
     "typescript": "~6.0.2",
     "vite": "catalog:",
     "vite-plus": "catalog:"
@@ -51,5 +58,6 @@
       "version": "12.11.2",
       "onFail": "warn"
     }
-  }
+  },
+  "packageManager": "pnpm@12.14.0"
 }

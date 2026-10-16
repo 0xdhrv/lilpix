@@ -9,6 +9,7 @@ import {
   SpeakerHighIcon as PhSpeakerHigh,
   SpeakerSlashIcon as PhSpeakerSlash,
   SunIcon as PhSun,
+  XLogoIcon as PhXLogo,
 } from "@phosphor-icons/react";
 
 // Phosphor icons at one consistent size and weight across the toolbar and menu.
@@ -24,5 +25,6 @@ export const LedOffIcon = () => <PhLightbulb size={SIZE} weight={WEIGHT} aria-hi
 export const FollowIcon = () => <PhCursor size={SIZE} weight={WEIGHT} aria-hidden />;
 export const FogIcon = () => <PhCloudFog size={SIZE} weight={WEIGHT} aria-hidden />;
 export const GithubIcon = () => <PhGithub size={SIZE} weight={WEIGHT} aria-hidden />;
+export const XIcon = () => <PhXLogo size={SIZE} weight={WEIGHT} aria-hidden />;
 export const InfoIcon = () => <PhInfo size={SIZE} weight={WEIGHT} aria-hidden />;
 export const CommandIcon = () => <PhCommand size={20} weight={WEIGHT} aria-hidden />;

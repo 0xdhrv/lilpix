@@ -616,6 +616,9 @@ const DATA = {
 const live = readFileSync(join(HERE, "live.js"), "utf8").replace("__DATA__", JSON.stringify(DATA));
 const kitSource = readFileSync(join(HERE, "kit", "iso-kit.mjs"), "utf8").replace(/^export /gm, "");
 
+// torph ships CommonJS; wrap it so the standalone page can use it without a bundler.
+const torphSource = `const torph=(()=>{const exports={};${readFileSync(join(ROOT, "node_modules", "torph", "dist", "index.js"), "utf8")}\nreturn exports})();`;
+
 const css = `<style>
 .lp-cavity{fill:var(--anatomy-shade-0)}
 .lp-well{fill:var(--anatomy-shade-1)}
@@ -674,7 +677,7 @@ let html = k.pageHtml({
   title: "lilpix, opened · anatomy",
   theme: theme === "dark" ? "dark" : "light",
   body: body + source,
-  script: kitSource + live,
+  script: kitSource + torphSource + live,
   width: 720,
 });
 if (theme === "auto") {

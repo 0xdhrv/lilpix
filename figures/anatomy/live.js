@@ -98,10 +98,17 @@ function drawFace() {
   glassEl.innerHTML = px.map(([hx, hy]) => rect(hx * PITCH, -(EYE_Z + hy * PITCH), 4.7)).join("");
   blinkAt = 0.12;
 }
+// torph forces position: relative on its root, so morph an inner span, not the absolutely placed corner.
+const readoutSpan = readout.appendChild(document.createElement("span"));
+readout.firstChild.remove();
+const readoutMorph = new torph.TextMorph({ element: readoutSpan, duration: 450 });
+let readoutText = "";
 function say() {
   const f = FACES[face];
   const text = `${f.name} · ${litOf(f)} of ${MAX_PIXELS} px · ${open ? "apart" : "assembled"}`;
-  if (readout.textContent !== text) readout.textContent = text;
+  if (text === readoutText) return;
+  readoutText = text;
+  readoutMorph.update(text);
 }
 
 function setOpen(next) {

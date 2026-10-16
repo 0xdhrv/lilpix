@@ -1,5 +1,6 @@
 import { Command } from "cmdk";
 import { Drawer } from "vaul";
+import { TextMorph } from "torph/react";
 import { EXPRESSION_NAMES, eyeGrids, type ExpressionName } from "./expressions.ts";
 import {
   BACKGROUND_NAMES,
@@ -20,6 +21,7 @@ import {
   SoundOffIcon,
   SoundOnIcon,
   SunIcon,
+  XIcon,
 } from "./icons.tsx";
 
 // cmdk item values. Expressions use their bare name; everything else is prefixed.
@@ -30,7 +32,9 @@ const FOLLOW_VALUE = "toggle-follow";
 const FOG_VALUE = "toggle-fog";
 const ABOUT_VALUE = "link-about";
 const GITHUB_VALUE = "link-github";
+const X_VALUE = "link-x";
 const REPO = "https://github.com/0xdhrv/lilpix";
+const X_PROFILE = "https://x.com/0xdhrv";
 
 function PixelEye({ rows }: { rows: string[] }) {
   return (
@@ -131,7 +135,9 @@ function MenuBody({
             onSelect={onToggleTheme}
           >
             <span className="icon">{theme === "dark" ? <SunIcon /> : <MoonIcon />}</span>
-            <span className="label">{theme === "dark" ? "Light mode" : "Dark mode"}</span>
+            <TextMorph as="span" className="label">
+              {theme === "dark" ? "Light mode" : "Dark mode"}
+            </TextMorph>
           </Command.Item>
           <Command.Item
             value={SOUND_VALUE}
@@ -139,7 +145,9 @@ function MenuBody({
             onSelect={onToggleSound}
           >
             <span className="icon">{sound ? <SoundOffIcon /> : <SoundOnIcon />}</span>
-            <span className="label">{sound ? "Mute sounds" : "Unmute sounds"}</span>
+            <TextMorph as="span" className="label">
+              {sound ? "Mute sounds" : "Unmute sounds"}
+            </TextMorph>
           </Command.Item>
           <Command.Item
             value={LEDS_VALUE}
@@ -147,7 +155,9 @@ function MenuBody({
             onSelect={onToggleLeds}
           >
             <span className="icon">{leds ? <LedOffIcon /> : <LedOnIcon />}</span>
-            <span className="label">{leds ? "Turn LEDs off" : "Turn LEDs on"}</span>
+            <TextMorph as="span" className="label">
+              {leds ? "Turn LEDs off" : "Turn LEDs on"}
+            </TextMorph>
           </Command.Item>
           <Command.Item
             value={FOLLOW_VALUE}
@@ -157,7 +167,9 @@ function MenuBody({
             <span className="icon">
               <FollowIcon />
             </span>
-            <span className="label">{follow ? "Stop following cursor" : "Follow cursor"}</span>
+            <TextMorph as="span" className="label">
+              {follow ? "Stop following cursor" : "Follow cursor"}
+            </TextMorph>
           </Command.Item>
           <Command.Item
             value={FOG_VALUE}
@@ -167,7 +179,9 @@ function MenuBody({
             <span className="icon">
               <FogIcon />
             </span>
-            <span className="label">{fog ? "Turn fog off" : "Turn fog on"}</span>
+            <TextMorph as="span" className="label">
+              {fog ? "Turn fog off" : "Turn fog on"}
+            </TextMorph>
           </Command.Item>
         </Command.Group>
 
@@ -191,6 +205,16 @@ function MenuBody({
               <GithubIcon />
             </span>
             <span className="label">View source on GitHub</span>
+          </Command.Item>
+          <Command.Item
+            value={X_VALUE}
+            keywords={["x", "twitter", "social", "follow", "dhruv", "0xdhrv"]}
+            onSelect={() => location.assign(X_PROFILE)}
+          >
+            <span className="icon">
+              <XIcon />
+            </span>
+            <span className="label">Follow on X</span>
           </Command.Item>
         </Command.Group>
       </Command.List>

@@ -1,14 +1,42 @@
 @import "./base.css";
 
+/* Tailwind: theme tokens and utilities only; base.css already does the resets. */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+/* Harmony (Evil Martians) palette replaces Tailwind's default colors. */
+@import "@evilmartians/harmony/tailwind.css";
+
+/* Geist Mono by Vercel, SIL Open Font License — see assets/fonts/GeistMono-OFL.txt */
+@font-face {
+  font-family: "Geist Mono";
+  src: url("./assets/fonts/GeistMono-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
 /* The about page (about/index.html) */
 
 :root {
-  --prose: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --tile: rgb(0 0 0 / 0.04);
+  --prose: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  /* Harmony neutral: grey, equal contrast steps. */
+  --bg: var(--color-neutral-100);
+  --fg: var(--color-neutral-950);
+  --muted: var(--color-neutral-700);
+  --surface: var(--color-neutral-50);
+  --border: var(--color-neutral-300);
+  --tile: var(--color-neutral-50);
+  --hover: var(--color-neutral-200);
 }
 
 :root[data-theme="dark"] {
-  --tile: rgb(255 255 255 / 0.04);
+  --bg: var(--color-neutral-950);
+  --fg: var(--color-neutral-100);
+  --muted: var(--color-neutral-500);
+  --surface: var(--color-neutral-900);
+  --border: var(--color-neutral-800);
+  --tile: var(--color-neutral-900);
+  --hover: var(--color-neutral-800);
 }
 
 body {
@@ -45,11 +73,7 @@ kbd {
 }
 
 code {
-  font:
-    13px/1 ui-monospace,
-    "SF Mono",
-    Menlo,
-    monospace;
+  font: 13px/1 var(--prose);
   padding: 2px 5px;
   border-radius: 5px;
   background: var(--tile);

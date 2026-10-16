@@ -75,7 +75,7 @@ export const BACKGROUND_NAMES = Object.keys(BACKGROUNDS) as BackgroundName[];
 export const bgValue = (name: BackgroundName) => `bg-${name}`;
 
 export function backgroundFor(name: BackgroundName): Background {
-  return BACKGROUNDS[name] as Background;
+  return BACKGROUNDS[name];
 }
 
 /** CSS approximation of a background, used for swatches in the menu. */

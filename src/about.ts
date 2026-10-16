@@ -79,3 +79,6 @@ function fitAnatomy() {
 }
 anatomy?.addEventListener("load", fitAnatomy);
 if (anatomy?.contentDocument?.readyState === "complete") fitAnatomy();
+
+// Dev-only feedback toolbar; the DEV check lets the bundler drop it from production.
+if (import.meta.env.DEV) void import("./dev-agentation.tsx");

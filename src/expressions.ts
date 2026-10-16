@@ -87,5 +87,5 @@ export function eyeGrids(name: ExpressionName): [string[], string[]] {
 }
 
 export function ledsFor(name: ExpressionName): Leds {
-  return EXPRESSIONS[name].leds as Leds;
+  return EXPRESSIONS[name].leds;
 }
