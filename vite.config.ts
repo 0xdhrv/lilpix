@@ -3,10 +3,10 @@ import { defineConfig, lazyPlugins } from "vite-plus";
 
 export default defineConfig({
   fmt: {
-    ignorePatterns: ["dist/**", "node_modules/**"],
+    ignorePatterns: ["dist/**", "node_modules/**", "public/anatomy/**", "figures/anatomy/kit/**"],
   },
   lint: {
-    ignorePatterns: ["dist/**", "node_modules/**"],
+    ignorePatterns: ["dist/**", "node_modules/**", "public/anatomy/**", "figures/anatomy/kit/**"],
     plugins: ["react", "typescript", "oxc"],
     rules: {
       "react/rules-of-hooks": "error",

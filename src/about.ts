@@ -46,3 +46,16 @@ EXPRESSION_NAMES.forEach((name, i) => {
   }
   list.append(item);
 });
+
+// The teardown figure is same-origin: size the iframe to its content so it never scrolls.
+const anatomy = document.querySelector<HTMLIFrameElement>("iframe.anatomy");
+function fitAnatomy() {
+  const doc = anatomy?.contentDocument;
+  if (!anatomy || !doc?.body || doc.location.href === "about:blank") return;
+  const fit = () =>
+    (anatomy.style.height = `${Math.ceil(doc.body.getBoundingClientRect().height)}px`);
+  new ResizeObserver(fit).observe(doc.body);
+  fit();
+}
+anatomy?.addEventListener("load", fitAnatomy);
+if (anatomy?.contentDocument?.readyState === "complete") fitAnatomy();
