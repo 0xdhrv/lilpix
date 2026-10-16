@@ -1,10 +1,15 @@
-# lilpix
-
-A tiny 3D robot with a pixel-art face. Click it, and it changes its mind.
-
-**[lilpix.dhrv.pw](https://lilpix.dhrv.pw)**
-
-![lilpix, a dark cube robot with glowing RGB LEDs and happy pixel eyes](public/og.png)
+<div align="center">
+  <br />
+  <img src="./public/lilpix-loop.svg" alt="lilpix, a cube robot with a pixel face, cycling through its expressions" width="480" />
+  <h1>lilpix</h1>
+  <p>A tiny 3D robot with a pixel-art face. Click it, and it changes its mind.</p>
+  <p>
+    <a href="https://lilpix.dhrv.pw">Play with it</a>
+    ·
+    <a href="https://lilpix.dhrv.pw/about/">About</a>
+  </p>
+  <br />
+</div>
 
 ## What it does
 
@@ -35,13 +40,14 @@ pnpm install
 pnpm dev
 ```
 
-| Script         | What it does                                                             |
-| -------------- | ------------------------------------------------------------------------ |
-| `pnpm dev`     | Start the dev server                                                     |
-| `pnpm build`   | Type-check and build to `dist/`                                          |
-| `pnpm preview` | Serve the production build                                               |
-| `pnpm check`   | Format, lint and type-check                                              |
-| `pnpm og`      | Re-render `public/og.png` from `og/og.html` (macOS, needs Google Chrome) |
+| Script         | What it does                                                               |
+| -------------- | -------------------------------------------------------------------------- |
+| `pnpm dev`     | Start the dev server                                                       |
+| `pnpm build`   | Type-check and build to `dist/`                                            |
+| `pnpm preview` | Serve the production build                                                 |
+| `pnpm check`   | Format, lint and type-check                                                |
+| `pnpm og`      | Re-render `public/og.png` from `og/og.html` (macOS, needs Google Chrome)   |
+| `pnpm loop`    | Regenerate the animated `public/lilpix-loop.svg` from `src/expressions.ts` |
 
 ## How it's built
 
@@ -50,6 +56,7 @@ pnpm dev
 ```
 src/
 ├── App.tsx          Scene, lighting, toolbar, keyboard shortcuts
+├── about.ts         Builds the expression gallery on /about/
 ├── Bot.tsx          The robot: body, screen, pixel eyes, LEDs, look-at
 ├── expressions.ts   Eye grids and LED patterns for every expression
 ├── sounds.ts        A short synth motif per expression
@@ -61,6 +68,9 @@ src/
 ├── tilt.ts          Device-orientation input for phones
 ├── hooks.ts         usePersistent, useMediaQuery
 └── icons.tsx        Phosphor icons at one size and weight
+about/index.html     Static about page, built alongside the app
+scripts/loop-svg.ts  Generates the animated SVG above
+og/og.html           Source for the social preview image
 ```
 
 A few details:
@@ -81,7 +91,7 @@ shocked: {
 },
 ```
 
-TypeScript then asks for a matching sound in [`src/sounds.ts`](src/sounds.ts). The menu, shortcuts and click cycle pick it up from there.
+TypeScript then asks for a matching sound in [`src/sounds.ts`](src/sounds.ts). The menu, shortcuts, click cycle and the about page pick it up from there. Run `pnpm loop` to add it to the animated SVG too.
 
 Backdrops work the same way: add one to `BACKGROUNDS` in [`src/backgrounds.ts`](src/backgrounds.ts) with a `light` and `dark` palette.
 

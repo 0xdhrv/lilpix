@@ -12,6 +12,7 @@ import {
 import {
   FogIcon,
   FollowIcon,
+  InfoIcon,
   LedOffIcon,
   LedOnIcon,
   MoonIcon,
@@ -26,6 +27,7 @@ const SOUND_VALUE = "toggle-sound";
 const LEDS_VALUE = "toggle-leds";
 const FOLLOW_VALUE = "toggle-follow";
 const FOG_VALUE = "toggle-fog";
+const ABOUT_VALUE = "link-about";
 
 function PixelEye({ rows }: { rows: string[] }) {
   return (
@@ -163,6 +165,19 @@ function MenuBody({
               <FogIcon />
             </span>
             <span className="label">{fog ? "Turn fog off" : "Turn fog on"}</span>
+          </Command.Item>
+        </Command.Group>
+
+        <Command.Group heading="lilpix">
+          <Command.Item
+            value={ABOUT_VALUE}
+            keywords={["about", "help", "info", "credits", "github", "source"]}
+            onSelect={() => location.assign("/about/")}
+          >
+            <span className="icon">
+              <InfoIcon />
+            </span>
+            <span className="label">About lilpix</span>
           </Command.Item>
         </Command.Group>
       </Command.List>

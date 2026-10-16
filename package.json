@@ -12,7 +12,8 @@
     "preview": "vp preview",
     "check": "vp check",
     "lint": "vp lint",
-    "og": "\"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome\" --headless=new --hide-scrollbars --log-level=3 --force-device-scale-factor=1 --window-size=1200,630 --allow-file-access-from-files --virtual-time-budget=2000 --screenshot=\"$PWD/public/og.png\" \"file://$PWD/og/og.html\""
+    "og": "\"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome\" --headless=new --hide-scrollbars --log-level=3 --force-device-scale-factor=1 --window-size=1200,630 --allow-file-access-from-files --virtual-time-budget=2000 --screenshot=\"$PWD/public/og.png\" \"file://$PWD/og/og.html\"",
+    "loop": "node scripts/loop-svg.ts"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

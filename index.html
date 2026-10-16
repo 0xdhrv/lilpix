@@ -61,6 +61,18 @@
         "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
       }
     </script>
+    <!-- Apply the saved theme before first paint. Mirrors usePersistent in src/hooks.ts. -->
+    <script>
+      try {
+        const saved = JSON.parse(localStorage.getItem("lilpix:theme"));
+        document.documentElement.dataset.theme =
+          saved === "light" || saved === "dark"
+            ? saved
+            : matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light";
+      } catch {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

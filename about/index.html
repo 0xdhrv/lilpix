@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>About lilpix: the tiny 3D robot with a pixel face</title>
+    <meta
+      name="description"
+      content="What lilpix is, what it can do, and how it's built: 15 pixel-art expressions, RGB LEDs with bloom, and a React Three Fiber scene. Open source under MIT."
+    />
+    <link rel="canonical" href="https://lilpix.dhrv.pw/about/" />
+    <meta name="theme-color" content="#e9e7e4" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#141416" media="(prefers-color-scheme: dark)" />
+    <meta name="color-scheme" content="light dark" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="lilpix" />
+    <meta property="og:url" content="https://lilpix.dhrv.pw/about/" />
+    <meta property="og:title" content="About lilpix: the tiny 3D robot with a pixel face" />
+    <meta
+      property="og:description"
+      content="15 pixel-art expressions, RGB LEDs with bloom, and a React Three Fiber scene. Open source under MIT."
+    />
+    <meta property="og:image" content="https://lilpix.dhrv.pw/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/png" />
+    <meta
+      property="og:image:alt"
+      content="lilpix, a dark cube robot with glowing RGB LEDs and happy pixel eyes, next to the word lilpix"
+    />
+    <meta property="og:locale" content="en_US" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="About lilpix: the tiny 3D robot with a pixel face" />
+    <meta
+      name="twitter:description"
+      content="15 pixel-art expressions, RGB LEDs with bloom, and a React Three Fiber scene. Open source under MIT."
+    />
+    <meta name="twitter:image" content="https://lilpix.dhrv.pw/og.png" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "AboutPage",
+        "name": "About lilpix",
+        "url": "https://lilpix.dhrv.pw/about/",
+        "about": {
+          "@type": "WebApplication",
+          "name": "lilpix",
+          "url": "https://lilpix.dhrv.pw/",
+          "applicationCategory": "EntertainmentApplication",
+          "operatingSystem": "Any"
+        }
+      }
+    </script>
+
+    <!-- Apply the saved theme before first paint. Mirrors usePersistent in src/hooks.ts. -->
+    <script>
+      try {
+        const saved = JSON.parse(localStorage.getItem("lilpix:theme"));
+        document.documentElement.dataset.theme =
+          saved === "light" || saved === "dark"
+            ? saved
+            : matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light";
+      } catch {}
+    </script>
+    <script type="module" src="/src/about.ts"></script>
+  </head>
+  <body>
+    <nav class="nav" aria-label="Site">
+      <a href="/">← Back to lilpix</a>
+      <a href="https://github.com/0xdhrv/lilpix">GitHub</a>
+    </nav>
+
+    <main class="about">
+      <header class="hero">
+        <img
+          src="/lilpix-loop.svg"
+          width="480"
+          height="240"
+          alt="lilpix, a cube robot with a pixel face, cycling through its expressions"
+        />
+        <h1>About lilpix</h1>
+        <p class="lead">
+          lilpix is a tiny robot that lives in your browser. It has a pixel-art face, three RGB LEDs
+          on its head, and a mood that changes every time you click it.
+        </p>
+        <a class="cta" href="/">Say hi →</a>
+      </header>
+
+      <section>
+        <h2>Things to try</h2>
+        <dl class="controls">
+          <div>
+            <dt>Click the bot</dt>
+            <dd>Switch to the next expression. Each one has its own sound.</dd>
+          </div>
+          <div>
+            <dt><kbd>1</kbd>–<kbd>9</kbd></dt>
+            <dd>Jump straight to one of the first nine expressions.</dd>
+          </div>
+          <div>
+            <dt><kbd>⌘K</kbd> / <kbd>Ctrl K</kbd></dt>
+            <dd>
+              Open the command menu. Hover an expression or backdrop to preview it before you pick.
+            </dd>
+          </div>
+          <div>
+            <dt>Move your cursor</dt>
+            <dd>The eyes follow it, and the body turns a little after them.</dd>
+          </div>
+          <div>
+            <dt>Tilt your phone</dt>
+            <dd>
+              On mobile, lilpix looks around as you tilt. iOS asks for access on your first tap.
+            </dd>
+          </div>
+          <div>
+            <dt>Drag and scroll</dt>
+            <dd>Orbit around the bot and zoom in or out.</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section>
+        <h2>Expressions</h2>
+        <p>
+          Every face is a small grid of lit pixels, paired with an LED pattern and a short chiptune
+          motif.
+        </p>
+        <ul class="faces" id="faces"></ul>
+      </section>
+
+      <section>
+        <h2>Under the hood</h2>
+        <p>
+          lilpix is built with React and
+          <a href="https://r3f.docs.pmnd.rs">React Three Fiber</a> on top of three.js. The body is a
+          pair of rounded boxes traced from the original flat illustration.
+        </p>
+        <ul class="notes">
+          <li>
+            <strong>The eyes are one draw call.</strong> Every lit pixel is an instance of a single
+            mesh, so a busy face costs the same as a simple one.
+          </li>
+          <li>
+            <strong>Only the LEDs glow.</strong> The bloom pass skips anything below full
+            brightness, and only the LEDs go past it. Each color is tuned so blue glows as strongly
+            as green.
+          </li>
+          <li>
+            <strong>Backdrops live in the scene.</strong> Bloom only draws over pixels the canvas
+            renders, so a CSS background behind the canvas would lose the glow.
+          </li>
+          <li>
+            <strong>Resolution adapts.</strong> When frames start dropping, the render resolution
+            steps down, and it climbs back once there's room.
+          </li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Open source</h2>
+        <p>
+          The code is on <a href="https://github.com/0xdhrv/lilpix">GitHub</a> under the MIT
+          license. Adding an expression takes one entry in <code>src/expressions.ts</code> and a
+          sound in <code>src/sounds.ts</code>. The README walks through it.
+        </p>
+      </section>
+
+      <section>
+        <h2>Credits</h2>
+        <p>
+          Type is <a href="https://vercel.com/font">Geist Pixel</a> by Vercel. The menu uses
+          <a href="https://cmdk.paco.me">cmdk</a> and <a href="https://vaul.emilkowal.ski">vaul</a>,
+          sounds come from
+          <a href="https://www.npmjs.com/package/@web-kits/audio">@web-kits/audio</a>, and icons
+          from <a href="https://phosphoricons.com">Phosphor</a>.
+        </p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Made by <a href="https://dhrv.pw">Dhruv</a></span>
+      <a href="/">lilpix.dhrv.pw</a>
+    </footer>
+  </body>
+</html>

@@ -24,6 +24,7 @@ import { EXPRESSION_NAMES, type ExpressionName } from "./expressions.ts";
 import { usePersistent, useMediaQuery } from "./hooks.ts";
 import {
   CommandIcon,
+  InfoIcon,
   LedOffIcon,
   LedOnIcon,
   MoonIcon,
@@ -242,6 +243,9 @@ export default function App() {
         >
           {leds ? <LedOnIcon /> : <LedOffIcon />}
         </button>
+        <a href="/about/" aria-label="About lilpix">
+          <InfoIcon />
+        </a>
       </div>
 
       {mobile && (
