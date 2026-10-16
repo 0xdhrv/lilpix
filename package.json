@@ -1,0 +1,46 @@
+{
+  "name": "lilpix",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A tiny 3D robot with a pixel-art face, built with React Three Fiber.",
+  "homepage": "https://lilpix.dhrv.pw",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vp dev",
+    "build": "tsc -b && vp build",
+    "preview": "vp preview",
+    "check": "vp check",
+    "lint": "vp lint",
+    "og": "\"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome\" --headless=new --hide-scrollbars --log-level=3 --force-device-scale-factor=1 --window-size=1200,630 --allow-file-access-from-files --virtual-time-budget=2000 --screenshot=\"$PWD/public/og.png\" \"file://$PWD/og/og.html\""
+  },
+  "dependencies": {
+    "@phosphor-icons/react": "^2.1.10",
+    "@react-three/drei": "^10.7.9",
+    "@react-three/fiber": "^9.8.2",
+    "@react-three/postprocessing": "^3.2.0",
+    "@web-kits/audio": "^0.2.0",
+    "cmdk": "^1.1.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "three": "^0.186.1",
+    "vaul": "^1.1.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@types/three": "^0.186.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "typescript": "~6.0.2",
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "12.11.2",
+      "onFail": "download"
+    }
+  }
+}

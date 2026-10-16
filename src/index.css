@@ -1,0 +1,283 @@
+/* Geist Pixel (Square) by Vercel, SIL Open Font License — see assets/fonts/OFL.txt */
+@font-face {
+  font-family: "Geist Pixel";
+  src: url("./assets/fonts/GeistPixel-Square.woff2") format("woff2");
+  font-weight: 500;
+  font-display: swap;
+}
+
+:root {
+  --bg: #e9e7e4;
+  --fg: #2d2c2d;
+  --muted: rgb(45 44 45 / 0.5);
+  --surface: rgb(255 255 255 / 0.8);
+  --hover: rgb(0 0 0 / 0.06);
+  --border: rgb(0 0 0 / 0.08);
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 12px 32px rgb(0 0 0 / 0.12);
+  color-scheme: light;
+  --font-pixel: "Geist Pixel", ui-monospace, "SF Mono", Menlo, monospace;
+  font: 500 14px/1.2 var(--font-pixel);
+}
+
+:root[data-theme="dark"] {
+  --bg: #141416;
+  --fg: #ececee;
+  --muted: rgb(236 236 238 / 0.5);
+  --surface: rgb(28 28 32 / 0.8);
+  --hover: rgb(255 255 255 / 0.08);
+  --border: rgb(255 255 255 / 0.08);
+  --shadow: 0 0 0 1px rgb(255 255 255 / 0.06), 0 12px 32px rgb(0 0 0 / 0.5);
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+kbd {
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+/* Pixel faces and swatches in the menu */
+
+.face {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 40px;
+  height: 26px;
+  border-radius: 5px;
+  background: #000;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08);
+  flex: none;
+}
+
+.pixel-eye {
+  display: grid;
+  grid-auto-rows: 3px;
+}
+
+.pixel-eye i[data-on="true"] {
+  background: #f2f2f2;
+}
+
+.swatch {
+  width: 40px;
+  height: 26px;
+  border-radius: 5px;
+  box-shadow: inset 0 0 0 1px var(--border);
+  flex: none;
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 26px;
+  flex: none;
+}
+
+/* Top-left toolbar */
+
+.toolbar {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--surface);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow);
+}
+
+.toolbar button {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+}
+
+.toolbar button:hover {
+  background: var(--hover);
+}
+
+.toolbar button:focus-visible,
+.menu-trigger:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 2px;
+}
+
+/* Mobile-only trigger */
+
+.menu-trigger {
+  position: fixed;
+  left: 50%;
+  bottom: max(24px, env(safe-area-inset-bottom));
+  translate: -50% 0;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--surface);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow);
+  color: var(--fg);
+  cursor: pointer;
+}
+
+/* Desktop command dialog. Overlay stays transparent so live previews are visible. */
+
+.cmdk-overlay {
+  position: fixed;
+  inset: 0;
+}
+
+.cmdk-content {
+  position: fixed;
+  left: 50%;
+  top: 24px;
+  translate: -50% 0;
+  width: min(440px, calc(100vw - 32px));
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--surface);
+  backdrop-filter: blur(16px);
+  box-shadow: var(--shadow);
+  color: var(--fg);
+}
+
+/* Mobile drawer (vaul) */
+
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 0.2);
+}
+
+.drawer-content {
+  position: fixed;
+  inset: auto 0 0;
+  display: flex;
+  flex-direction: column;
+  max-height: 55dvh;
+  padding-bottom: env(safe-area-inset-bottom);
+  border-radius: 16px 16px 0 0;
+  background: var(--surface);
+  backdrop-filter: blur(16px);
+  box-shadow: var(--shadow);
+  color: var(--fg);
+  outline: none;
+}
+
+.drawer-handle {
+  margin: 8px auto 2px;
+  background: var(--border) !important;
+}
+
+.drawer-content [cmdk-root] {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.drawer-content [cmdk-list] {
+  max-height: none;
+  flex: 1;
+}
+
+/* cmdk parts, shared by dialog and drawer */
+
+[cmdk-input] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 16px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  font: inherit;
+  font-size: 16px;
+  color: inherit;
+  outline: none;
+}
+
+[cmdk-input]::placeholder {
+  color: var(--muted);
+}
+
+[cmdk-list] {
+  max-height: min(360px, 50vh);
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 6px;
+  scroll-padding: 6px;
+}
+
+[cmdk-group-heading] {
+  padding: 10px 8px 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+[cmdk-item] {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  padding: 4px 8px;
+  border-radius: 9px;
+  text-transform: capitalize;
+  cursor: pointer;
+  user-select: none;
+}
+
+[cmdk-item][data-selected="true"] {
+  background: var(--hover);
+}
+
+[cmdk-item] .label {
+  flex: 1;
+}
+
+[cmdk-item] .current {
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: none;
+}
+
+[cmdk-empty] {
+  padding: 24px;
+  text-align: center;
+  color: var(--muted);
+}
