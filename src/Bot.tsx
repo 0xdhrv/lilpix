@@ -29,6 +29,10 @@ const EYES = [-2.58, 2.65];
 const PIXEL = 0.86;
 const EYES_Y = -0.95;
 
+// Vent slots on the right ear, as on the about-page figure: 11 closed slots.
+const EAR_HX = 17.7 / 2;
+const VENTS = Array.from({ length: 11 }, (_, i) => (i - 5) * 0.73);
+
 // Cursor tracking. Eye travel keeps the widest grid inside the screen; the
 // body turn stays subtle so the face is always readable.
 const LOOK_X = 1.1;
@@ -187,6 +191,14 @@ export function Bot({ expression, leds, follow, onClick }: BotProps) {
       <RoundedBox args={[17.7, 14, DEPTH - 1]} radius={0.25} smoothness={4} castShadow>
         <meshStandardMaterial color={BODY} roughness={0.55} metalness={0.1} />
       </RoundedBox>
+
+      {/* Vent slots on the right side */}
+      {VENTS.map((z) => (
+        <mesh key={z} position={[EAR_HX + 0.005, 0, z]}>
+          <boxGeometry args={[0.04, 6.7, 0.3]} />
+          <meshStandardMaterial color={INK} roughness={0.9} />
+        </mesh>
+      ))}
 
       {/* Screen (x 1749–1891, y 701–799) */}
       <mesh position={[0, -1.4, FRONT + 0.01]}>

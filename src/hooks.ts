@@ -24,6 +24,22 @@ export function usePersistent<T>(
     return initial();
   });
 
+  // Follow changes made in other tabs and pages (the about page, the anatomy
+  // figure), so every open page shows the same theme and settings.
+  useEffect(() => {
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== key || event.newValue === null) return;
+      try {
+        const parsed: unknown = JSON.parse(event.newValue);
+        if (isValid(parsed)) setValue(parsed);
+      } catch {
+        // Ignore unreadable values.
+      }
+    };
+    addEventListener("storage", onStorage);
+    return () => removeEventListener("storage", onStorage);
+  }, [key, isValid]);
+
   useEffect(() => {
     try {
       localStorage.setItem(key, JSON.stringify(value));

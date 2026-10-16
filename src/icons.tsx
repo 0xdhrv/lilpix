@@ -2,6 +2,7 @@ import {
   CloudFogIcon as PhCloudFog,
   CommandIcon as PhCommand,
   CursorIcon as PhCursor,
+  GithubLogoIcon as PhGithub,
   InfoIcon as PhInfo,
   LightbulbIcon as PhLightbulb,
   MoonIcon as PhMoon,
@@ -22,5 +23,6 @@ export const LedOnIcon = () => <PhLightbulb size={SIZE} weight="fill" aria-hidde
 export const LedOffIcon = () => <PhLightbulb size={SIZE} weight={WEIGHT} aria-hidden />;
 export const FollowIcon = () => <PhCursor size={SIZE} weight={WEIGHT} aria-hidden />;
 export const FogIcon = () => <PhCloudFog size={SIZE} weight={WEIGHT} aria-hidden />;
+export const GithubIcon = () => <PhGithub size={SIZE} weight={WEIGHT} aria-hidden />;
 export const InfoIcon = () => <PhInfo size={SIZE} weight={WEIGHT} aria-hidden />;
 export const CommandIcon = () => <PhCommand size={20} weight={WEIGHT} aria-hidden />;

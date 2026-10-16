@@ -66,7 +66,6 @@ kbd {
   border-radius: 12px;
   background: var(--surface);
   backdrop-filter: blur(12px);
-  box-shadow: var(--shadow);
 }
 
 .toolbar button,
