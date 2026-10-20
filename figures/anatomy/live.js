@@ -65,7 +65,7 @@ function ledLevel({ mode, speed }, t, i) {
 }
 const litOf = (f) => [...f.left, ...f.right].join("").split("#").length - 1;
 
-// Face pixels in half-pixel units, the matrix's own pitch.
+// Face pixels in half-pixel units, the matrix's own pitch. On the glass they touch, as on the 3D bot.
 function pixelsOf(f) {
   const out = [];
   [f.left, f.right].forEach((rows, eye) => {
@@ -95,7 +95,9 @@ function drawFace() {
         .join(""),
     )
     .join("");
-  glassEl.innerHTML = px.map(([hx, hy]) => rect(hx * PITCH, -(EYE_Z + hy * PITCH), 4.7)).join("");
+  glassEl.innerHTML = px
+    .map(([hx, hy]) => rect(hx * PITCH, -(EYE_Z + hy * PITCH), 2 * PITCH + 0.04))
+    .join("");
   blinkAt = 0.12;
 }
 // torph forces position: relative on its root, so morph an inner span, not the absolutely placed corner.

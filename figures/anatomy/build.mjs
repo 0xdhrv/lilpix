@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import * as k from "./kit/iso-kit.mjs";
 import * as G from "./kit/lathe.mjs";
 import { EXPRESSIONS } from "../../src/expressions.ts";
+import { SHELLS } from "../../src/shells.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, "..", "..");
@@ -144,7 +145,16 @@ function recess({ x0, x1, z0, z1, r, depth }, y, back = "", backClass = "lp-well
 // The opening of the rear shell, projected: what sits inside is only seen through it.
 const OPENING = k.pathOf(
   k
-    .roundedPlan({ x: OPEN.x0, y: OPEN.z0, w: OPEN.x1 - OPEN.x0, d: OPEN.z1 - OPEN.z0, r: 2 }, 6)
+    .roundedPlan(
+      {
+        x: OPEN.x0,
+        y: OPEN.z0,
+        w: OPEN.x1 - OPEN.x0,
+        d: OPEN.z1 - OPEN.z0,
+        r: 2,
+      },
+      6,
+    )
     .map(([x, z]) => at([x, SPLIT, z])),
   true,
 );
@@ -155,7 +165,9 @@ function plate() {
   for (const [x, y] of feet) {
     out.push(Sd(k.cylinder(x, y, 7, -PLATE_H - FOOT_H, 1.6, P, 28), { tone: "lo" }));
     out.push(
-      Sd(k.cylinder(x, y, 5.4, -PLATE_H - FOOT_H + 1.6, FOOT_H - 1.6, P, 28), { tone: "mid" }),
+      Sd(k.cylinder(x, y, 5.4, -PLATE_H - FOOT_H + 1.6, FOOT_H - 1.6, P, 28), {
+        tone: "mid",
+      }),
     );
   }
   out.push(
@@ -189,7 +201,11 @@ function plate() {
     L(tri(34, 176), { tone: "faint" }),
   );
   const screws = k.corners(PLATE, 10);
-  out.push(L(screws.map(([x, y]) => k.ring(x, y, 2.2, 0, P, 16)).join(""), { tone: "lo" }));
+  out.push(
+    L(screws.map(([x, y]) => k.ring(x, y, 2.2, 0, P, 16)).join(""), {
+      tone: "lo",
+    }),
+  );
   out.push(
     D(
       screws.map(([x, y]) => at([x, y, 0])),
@@ -280,7 +296,11 @@ function rails() {
     out.push(D(dots, { size: 0.4 }));
   }
   for (const y of [RAIL_Y[0] - 6, RAIL_Y[1]]) {
-    out.push(Sd(k.slabOf({ x: -38, y, w: 76, d: 6, r: 1.2 }, 0, 8, P, 3, 0.5), { tone: "mid" }));
+    out.push(
+      Sd(k.slabOf({ x: -38, y, w: 76, d: 6, r: 1.2 }, 0, 8, P, 3, 0.5), {
+        tone: "mid",
+      }),
+    );
     out.push(D([at([-30, y + 3, 8]), at([30, y + 3, 8])], { size: 0.45 }));
   }
   return out.join("");
@@ -324,18 +344,22 @@ function ear(sign) {
     }),
   ];
   if (sign > 0) {
-    // Vent slots on the outer face: closed outlines, so they have no loose ends.
+    // Vent slots on the outer face, as on the 3D bot: 11 black slots, 6.7 tall, centred on the body.
     const slot = (y) =>
       k.pathOf(
         k
-          .roundedPlan({ x: y - 0.9, y: Z0 + 30, w: 1.8, d: 40, r: 0.9 }, 4)
+          .roundedPlan({ x: y - 0.9, y: Z0 + BODY_H / 2 - 20.1, w: 1.8, d: 40.2, r: 0.9 }, 4)
           .map(([u, z]) => at([EAR.hx, u, z])),
         true,
       );
     const vents = [];
-    for (let y = -22; y <= 22; y += 4.4) vents.push(slot(y));
-    out.push(L(vents.join(""), { tone: "lo" }));
-    out.push(D([at([EAR.hx, -26, Z0 + 80]), at([EAR.hx, 26, Z0 + 80])], { size: 0.45 }));
+    for (let i = -5; i <= 5; i++) vents.push(slot(i * 0.73 * S));
+    out.push(`<path class="lp-vent" d="${vents.join("")}"/>`, L(vents.join(""), { tone: "lo" }));
+    out.push(
+      D([at([EAR.hx, -26, Z0 + 80]), at([EAR.hx, 26, Z0 + 80])], {
+        size: 0.45,
+      }),
+    );
   }
   return out.join("");
 }
@@ -386,7 +410,14 @@ function rearShell() {
     .join("")}</g>`;
   out.push(
     recess(
-      { x0: OPEN.x0, x1: OPEN.x1, z0: OPEN.z0, z1: OPEN.z1, r: 2, depth: SPLIT + 33 },
+      {
+        x0: OPEN.x0,
+        x1: OPEN.x1,
+        z0: OPEN.z0,
+        z1: OPEN.z1,
+        r: 2,
+        depth: SPLIT + 33,
+      },
       SPLIT,
       back,
       "lp-cavity",
@@ -441,7 +472,12 @@ function board() {
     [-32, -24, z(68), z(76), 3, ""],
   ];
   for (const [a, b, c, d, h, cls] of parts)
-    out.push(Sd(boxY(a, b, c, d, y1, y1 + h, 0.5), { tone: "hi", className: cls || undefined }));
+    out.push(
+      Sd(boxY(a, b, c, d, y1, y1 + h, 0.5), {
+        tone: "hi",
+        className: cls || undefined,
+      }),
+    );
   out.push(Sd(boxY(-14, -4, z(28), z(33), y1, y1 + 2.6, 2.4, 5), { tone: "hi" }));
   for (const [a, c] of [
     [9, z(48)],
@@ -454,7 +490,10 @@ function board() {
     out.push(Sd(boxY(a, a + 3, c, c + 1.6, y1, y1 + 1, 0.2, 2), { tone: "mid" }));
   // Pin 1 dots and the QFN's pads.
   out.push(
-    D([at([-12.4, y1 + 1.6, z(60.4)]), at([15.4, y1 + 1.4, z(62.6)])], { size: 0.4, tone: "hi" }),
+    D([at([-12.4, y1 + 1.6, z(60.4)]), at([15.4, y1 + 1.4, z(62.6)])], {
+      size: 0.4,
+      tone: "hi",
+    }),
   );
   const pads = [];
   for (let i = 0; i < 6; i++)
@@ -463,7 +502,9 @@ function board() {
   // The buzzer that plays each face's chiptune.
   out.push(Sd(rodY(-26, z(24), 9, y1, y1 + 5), { tone: "hi" }));
   out.push(
-    L(faceRing(-26, z(24), 6.4, y1 + 5) + faceRing(-26, z(24), 1.4, y1 + 5), { tone: "lo" }),
+    L(faceRing(-26, z(24), 6.4, y1 + 5) + faceRing(-26, z(24), 1.4, y1 + 5), {
+      tone: "lo",
+    }),
   );
   // The click switch: press it and lilpix changes face.
   out.push(Sd(rodY(-28, z(72), 2.4, y1 + 3, y1 + 5.2), { tone: "hi", lit: true }));
@@ -519,7 +560,10 @@ function display() {
   });
   out.push(onFace(y1, L(`M${LED_X[2] + 3.3} ${-LED_Z}H18`, { tone: "lo" })));
   out.push(
-    Sd(boxY(16, 30, LED_Z - 4, LED_Z + 4, y1, y1 + 1.2, 0.5), { tone: "hi", className: "lp-chip" }),
+    Sd(boxY(16, 30, LED_Z - 4, LED_Z + 4, y1, y1 + 1.2, 0.5), {
+      tone: "hi",
+      className: "lp-chip",
+    }),
   );
   out.push(
     D(
@@ -538,7 +582,14 @@ function display() {
 function cover() {
   const plan = { x: -HX, y: SPLIT, w: HX * 2, d: FRONT - SPLIT, r: 1.5 };
   const out = [Sd(k.slabOf(plan, Z0, BODY_H, P, 4, 0.6), { tone: "hi" })];
-  const glass = { x0: SCREEN.x0, x1: SCREEN.x1, z0: SCREEN.z0, z1: SCREEN.z1, r: 1, depth: 1.2 };
+  const glass = {
+    x0: SCREEN.x0,
+    x1: SCREEN.x1,
+    z0: SCREEN.z0,
+    z1: SCREEN.z1,
+    r: 1,
+    depth: 1.2,
+  };
   const shine = `<path class="iso-line" data-tone="mid" data-free="" d="M${SCREEN.x0 + 5} ${-(SCREEN.z1 - 14)}Q${SCREEN.x0 + 6} ${-(SCREEN.z1 - 5)} ${SCREEN.x0 + 15} ${-(SCREEN.z1 - 4)}" style="opacity:.5"/>`;
   out.push(
     recess(glass, FRONT, `<g class="lp-glass-pixels" data-part="glass"></g>${shine}`, "lp-glass"),
@@ -572,7 +623,13 @@ const FACES = Object.entries(EXPRESSIONS).map(([name, e]) => ({
   leds: e.leds,
 }));
 const litOf = (face) => [...face.left, ...face.right].join("").split("#").length - 1;
-const RIBBON = { x0: 22, x1: 32, z: Z0 + 78, from: BOARD.y1 + 2.4, to: MATRIX.y0 };
+const RIBBON = {
+  x0: 22,
+  x1: 32,
+  z: Z0 + 78,
+  from: BOARD.y1 + 2.4,
+  to: MATRIX.y0,
+};
 
 const moving = (name, inner, clip) =>
   `<g data-piece="${name}"${clip ? ` clip-path="url(#lp-in-${name})"` : ""}>${inner}</g>`;
@@ -619,6 +676,48 @@ const kitSource = readFileSync(join(HERE, "kit", "iso-kit.mjs"), "utf8").replace
 // torph ships CommonJS; wrap it so the standalone page can use it without a bundler.
 const torphSource = `const torph=(()=>{const exports={};${readFileSync(join(ROOT, "node_modules", "torph", "dist", "index.js"), "utf8")}\nreturn exports})();`;
 
+// One palette per shell in src/shells.ts, so the figure wears the same shell as the 3D bot.
+// Tones are the graphite figure's own steps, measured as mixes of the body colour.
+const hex = (c) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16));
+const mix = (c, to, t) =>
+  `#${hex(c)
+    .map((v, i) =>
+      Math.round(v + (hex(to)[i] - v) * t)
+        .toString(16)
+        .padStart(2, "0"),
+    )
+    .join("")}`;
+const shellVars = (body) => {
+  const [r, g, b] = hex(body);
+  const pale = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 > 0.5;
+  // Lines go light on a dark shell and dark on a pale one.
+  const ink = pale ? "#000000" : "#ffffff";
+  const vars = {
+    paper: body,
+    top: mix(body, "#ffffff", pale ? 0.35 : 0.067),
+    "shade-0": mix(body, "#000000", 0.22),
+    "shade-1": mix(body, "#000000", 0.13),
+    "shade-2": mix(body, "#000000", 0.044),
+    "shade-3": mix(body, "#ffffff", 0.014),
+    mid: mix(body, ink, pale ? 0.42 : 0.305),
+    lo: mix(body, ink, pale ? 0.3 : 0.2),
+    faint: mix(body, ink, pale ? 0.17 : 0.114),
+    dot: mix(body, ink, pale ? 0.75 : 0.686),
+  };
+  if (pale) vars.hi = mix(body, "#000000", 0.82);
+  return (
+    Object.entries(vars)
+      .map(([name, value]) => `--anatomy-${name}:${value}`)
+      .join(";") + `;--lp-cavity:${mix(body, "#000000", 0.55)}`
+  );
+};
+const shellCss = Object.entries(SHELLS)
+  .map(
+    ([name, { body }]) =>
+      `${name === "graphite" ? ".lp-shell," : ""}.iso[data-shell="${name}"] .lp-shell{${shellVars(body)}}`,
+  )
+  .join("\n");
+
 const css = `<style>
 .lp-cavity{fill:var(--anatomy-shade-0)}
 .lp-well{fill:var(--anatomy-shade-1)}
@@ -634,9 +733,11 @@ const css = `<style>
 .lp-ribbon{fill:var(--lp-flex);stroke:none}
 .iso{--lp-glass:#050506;--lp-eye:#f2f2f2;--lp-unlit:#ffffff1c;--lp-chip:#0d0d0e;--lp-chip-top:#161617;--lp-flex:#3a2a12}
 .iso[data-theme="light"]{--lp-glass:#141416;--lp-unlit:#ffffff22;--lp-chip:#2a2a2c;--lp-chip-top:#3a3a3d;--lp-flex:#d9a54a}
-.lp-shell{--anatomy-paper:#2d2c2d;--anatomy-top:#3b3a3b;--anatomy-shade-0:#232223;--anatomy-shade-1:#272627;--anatomy-shade-2:#2b2a2b;--anatomy-shade-3:#302f30;--anatomy-mid:#6d6c6d;--anatomy-lo:#575657;--anatomy-faint:#454445;--anatomy-dot:#bdbcbd}
 .iso[data-theme="light"] .lp-shell{--anatomy-hi:#111112}
-.lp-shell .lp-cavity{fill:#141414}.lp-shell .lp-sticker{fill:#3b3a3b}
+${shellCss}
+.lp-shell .lp-cavity{fill:var(--lp-cavity)}.lp-shell .lp-sticker{fill:var(--anatomy-top)}
+.lp-vent{fill:#000;stroke:none}
+.lp-glass-pixels{filter:drop-shadow(0 0 1.6px rgb(255 255 255 / .55))}
 .lp-brass{--anatomy-paper:#c7b78c;--anatomy-top:#dccd9f;--anatomy-shade-0:#a1915f;--anatomy-shade-1:#ad9d6c;--anatomy-shade-2:#b8a878;--anatomy-shade-3:#c2b283;--anatomy-hi:#4a3d17;--anatomy-faint:#8d7d4c}
 .iso-stage{touch-action:pan-y;cursor:pointer}
 .iso-stage:focus{outline:none}
@@ -659,7 +760,10 @@ const body =
     hint: "Hover to close · click to change face",
     readout: `${first.name} · ${litOf(first)} of ${MAX_PIXELS} px · apart`,
     keys: [
-      { mark: "lit", label: "The face: 15 expressions drawn on a 32 × 22 LED matrix" },
+      {
+        mark: "lit",
+        label: "The face: 15 expressions drawn on a 32 × 22 LED matrix",
+      },
       { mark: "red", label: "Three RGB LEDs, one colour and pattern per face" },
       {
         mark: "raised",
@@ -681,8 +785,8 @@ let html = k.pageHtml({
   width: 720,
 });
 if (theme === "auto") {
-  // Same theme as the app and the about page, and follow changes made there.
-  const pick = `<script>if(new URLSearchParams(location.search).has("embed"))document.documentElement.dataset.embed="";(()=>{const dark=matchMedia("(prefers-color-scheme: dark)");const apply=()=>{let s=null;try{s=JSON.parse(localStorage.getItem("lilpix:theme"))}catch{}const t=s==="light"||s==="dark"?s:dark.matches?"dark":"light";document.body.dataset.theme=t;document.documentElement.style.colorScheme=t};apply();addEventListener("storage",(e)=>{if(e.key==="lilpix:theme"||e.key===null)apply()});dark.addEventListener("change",apply)})()</script>`;
+  // Same theme and shell as the app and the about page, and follow changes made there.
+  const pick = `<script>if(new URLSearchParams(location.search).has("embed"))document.documentElement.dataset.embed="";(()=>{const dark=matchMedia("(prefers-color-scheme: dark)");const apply=()=>{let s=null;try{s=JSON.parse(localStorage.getItem("lilpix:theme"))}catch{}const t=s==="light"||s==="dark"?s:dark.matches?"dark":"light";document.body.dataset.theme=t;document.documentElement.style.colorScheme=t;let shell=null;try{shell=JSON.parse(localStorage.getItem("lilpix:shell"))}catch{}document.body.dataset.shell=${JSON.stringify(Object.keys(SHELLS))}.includes(shell)?shell:"graphite"};apply();addEventListener("storage",(e)=>{if(e.key==="lilpix:theme"||e.key==="lilpix:shell"||e.key===null)apply()});dark.addEventListener("change",apply)})()</script>`;
   html = html.replace(/(<body[^>]*>)/, `$1${pick}`);
 }
 const outDir = join(ROOT, "public", "anatomy");
