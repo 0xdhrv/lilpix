@@ -76,6 +76,7 @@
     <nav class="nav" aria-label="Site">
       <a href="/">← Back to lilpix</a>
       <span class="flex gap-4">
+        <button type="button" id="theme" aria-pressed="false">Dark mode</button>
         <a href="https://github.com/0xdhrv/lilpix">GitHub</a>
         <a href="https://x.com/0xdhrv">X</a>
       </span>
@@ -88,13 +89,11 @@
         title="lilpix, opened: an interactive teardown of the bot"
       ></iframe>
       <header class="hero">
-        <img
-          src="/lilpix-loop.svg"
-          width="480"
-          height="240"
-          alt="lilpix, a cube robot with a pixel face, cycling through its expressions"
-        />
-        <h1>About lilpix</h1>
+        <button type="button" class="mood" id="mood" aria-label="Change lilpix's expression">
+          <span class="screen big" id="mood-screen"></span>
+          <span class="hint" aria-hidden="true">← click my face</span>
+        </button>
+        <h1>Hi, I'm lilpix.</h1>
         <p class="lead">
           lilpix is a tiny robot that lives in your browser. It has a pixel-art face, three RGB LEDs
           on its head, and a mood that changes every time you click it.
@@ -142,7 +141,7 @@
           Every face is a small grid of lit pixels, paired with an LED pattern and a short chiptune
           motif.
         </p>
-        <ul class="faces" id="faces"></ul>
+        <div class="carousel"><ul class="faces" id="faces"></ul></div>
       </section>
 
       <section>
@@ -186,7 +185,8 @@
       <section>
         <h2>Credits</h2>
         <p>
-          Type is <a href="https://vercel.com/font">Geist Pixel</a> by Vercel. The menu uses
+          Type is <a href="https://vercel.com/font">Geist Pixel</a> by Vercel, text is
+          <a href="https://rsms.me/inter/">Inter</a>. The menu uses
           <a href="https://cmdk.paco.me">cmdk</a> and <a href="https://vaul.emilkowal.ski">vaul</a>,
           sounds come from
           <a href="https://www.npmjs.com/package/@web-kits/audio">@web-kits/audio</a>, and icons
@@ -197,9 +197,6 @@
 
     <footer class="footer">
       <span>Made by <a href="https://dhrv.pw">Dhruv</a></span>
-      <span>
-        <a href="https://x.com/0xdhrv">X</a> · <a href="https://github.com/0xdhrv/lilpix">GitHub</a>
-      </span>
       <a href="/">lilpix.dhrv.pw</a>
     </footer>
   </body>

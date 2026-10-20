@@ -15,10 +15,19 @@
   font-display: swap;
 }
 
+/* Inter by Rasmus Andersson, SIL Open Font License — see assets/fonts/Inter-OFL.txt */
+@font-face {
+  font-family: "Inter";
+  src: url("./assets/fonts/Inter-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
 /* The about page (about/index.html) */
 
 :root {
-  --prose: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --prose: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
   /* Harmony neutral: grey, equal contrast steps. */
   --bg: var(--color-neutral-100);
   --fg: var(--color-neutral-950);
@@ -32,7 +41,7 @@
 :root[data-theme="dark"] {
   --bg: var(--color-neutral-950);
   --fg: var(--color-neutral-100);
-  --muted: var(--color-neutral-500);
+  --muted: var(--color-neutral-400);
   --surface: var(--color-neutral-900);
   --border: var(--color-neutral-800);
   --tile: var(--color-neutral-900);
@@ -40,23 +49,44 @@
 }
 
 body {
+  font: 400 16px/1.6 var(--prose);
+  font-optical-sizing: auto;
+  font-kerning: normal;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Geist Pixel stays the display voice: nav, headings, buttons. */
+.nav,
+.about h1,
+.about h2,
+.cta,
+.mood {
+  font-family: var(--font-pixel);
 }
 
 a {
   color: inherit;
   text-decoration-color: var(--muted);
+  text-decoration-thickness: from-font;
   text-underline-offset: 3px;
 }
 
-a:hover {
-  text-decoration-color: currentColor;
+@media (hover: hover) and (pointer: fine) {
+  a:hover {
+    text-decoration-color: currentColor;
+  }
 }
 
-a:focus-visible {
+a:focus-visible,
+button:focus-visible {
   outline: 2px solid var(--fg);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+.cta:focus-visible {
+  border-radius: 999px;
 }
 
 kbd {
@@ -68,12 +98,12 @@ kbd {
   border-radius: 6px;
   background: var(--tile);
   box-shadow: inset 0 0 0 1px var(--border);
-  font: inherit;
-  font-size: 12px;
+  font: 500 12px/1 var(--prose);
+  font-variant-numeric: tabular-nums;
 }
 
 code {
-  font: 13px/1 var(--prose);
+  font: 13px/1 var(--mono);
   padding: 2px 5px;
   border-radius: 5px;
   background: var(--tile);
@@ -91,21 +121,40 @@ code {
 .nav {
   display: flex;
   justify-content: space-between;
-  padding-block: 24px;
+  padding-block: 12px;
 }
 
-.nav a {
+.nav > span {
+  align-items: center;
+}
+
+/* 44px tall hit areas for the plain text controls. */
+.nav a,
+.nav button,
+.footer a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: var(--muted);
   text-decoration: none;
 }
 
-.nav a:hover {
-  color: var(--fg);
+.nav button {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .nav a:hover,
+  .nav button:hover {
+    color: var(--fg);
+  }
 }
 
 .about section {
-  padding-block: 40px;
-  border-top: 1px solid var(--border);
+  padding-block: 32px;
 }
 
 .about h1,
@@ -115,14 +164,32 @@ code {
 }
 
 .about h2 {
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin: 0 0 16px;
   font-size: 20px;
+}
+
+/* Signature: the bot's screen with two pixel eyes, marking every section. */
+.about h2::before {
+  content: "";
+  flex: none;
+  width: 28px;
+  height: 20px;
+  border-radius: 5px;
+  background:
+    linear-gradient(#f2f2f2, #f2f2f2) 8px 5px / 3px 10px no-repeat,
+    linear-gradient(#f2f2f2, #f2f2f2) 17px 5px / 3px 10px no-repeat,
+    #000;
 }
 
 .about p,
 .about li,
 .about dd {
-  font: 16px/1.6 var(--prose);
+  font: 400 16px/1.6 var(--prose);
+  letter-spacing: -0.006em;
   text-wrap: pretty;
 }
 
@@ -139,31 +206,53 @@ code {
 
 .hero {
   display: grid;
-  justify-items: center;
-  padding-block: 16px 56px;
-  text-align: center;
+  justify-items: start;
+  padding-block: 16px 32px;
 }
 
-.hero img {
-  width: min(480px, 100%);
-  height: auto;
+.mood {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  transition: scale 120ms ease;
+}
+
+.mood:active {
+  scale: 0.97;
+}
+
+.mood .screen.big {
+  --px: 6px;
+  width: 112px;
+  height: 76px;
+  gap: 12px;
+  border-radius: 10px;
+  box-shadow: 0 0 0 1px var(--border);
 }
 
 .hero h1 {
-  margin: 8px 0 12px;
-  font-size: clamp(36px, 8vw, 56px);
+  margin: 20px 0 12px;
+  font-size: clamp(44px, 11vw, 80px);
   line-height: 1;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
 }
 
 .hero .lead {
-  max-width: 480px;
+  max-width: 520px;
   margin-bottom: 28px;
   font-size: 18px;
 }
 
 .cta {
-  padding: 12px 20px;
+  display: inline-grid;
+  place-items: center;
+  min-height: 44px;
+  padding: 0 20px;
   border-radius: 999px;
   background: var(--fg);
   color: var(--bg);
@@ -171,8 +260,10 @@ code {
   transition: scale 150ms ease;
 }
 
-.cta:hover {
-  scale: 1.03;
+@media (hover: hover) and (pointer: fine) {
+  .cta:hover {
+    scale: 1.02;
+  }
 }
 
 .cta:active {
@@ -216,18 +307,35 @@ code {
 
 /* Expression gallery, built by src/about.ts */
 
-.faces {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 8px;
-  margin: 24px 0 0;
-  padding: 0;
-  list-style: none;
+.carousel {
+  margin-top: 24px;
+  overflow: hidden;
+  /* Fade the edges so tiles slide in and out instead of being clipped. */
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 48px,
+    #000 calc(100% - 48px),
+    transparent
+  );
 }
 
+.faces {
+  display: flex;
+  width: max-content;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  animation: carousel var(--duration, 45s) linear infinite;
+}
+
+/* Margins, not gap: the loop distance must be exactly half the track. */
 .faces li {
   position: relative;
   display: grid;
+  flex: none;
+  width: 120px;
+  margin-right: 8px;
   justify-items: center;
   gap: 10px;
   padding: 16px 8px 12px;
@@ -237,7 +345,19 @@ code {
   font: inherit;
 }
 
-.faces .screen {
+@keyframes carousel {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .carousel:hover .faces {
+    animation-play-state: paused;
+  }
+}
+
+.screen {
   --px: 4px;
   display: flex;
   align-items: center;
@@ -249,12 +369,12 @@ code {
   background: #000;
 }
 
-.faces .eye {
+.eye {
   display: grid;
   grid-auto-rows: var(--px);
 }
 
-.faces .eye .on {
+.eye .on {
   background: #f2f2f2;
 }
 
@@ -284,7 +404,7 @@ code {
   min-width: 18px;
   height: 18px;
   padding: 0 4px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
 }
 
@@ -303,18 +423,18 @@ code {
 
 .footer {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
-  padding-block: 32px 48px;
+  gap: 0 16px;
+  padding-block: 20px 36px;
   border-top: 1px solid var(--border);
   color: var(--muted);
 }
 
-.footer a {
-  text-decoration: none;
-}
-
-.footer a:hover {
-  color: var(--fg);
+@media (hover: hover) and (pointer: fine) {
+  .footer a:hover {
+    color: var(--fg);
+  }
 }
 
 /* The teardown figure (built by figures/anatomy/build.mjs) */
@@ -329,7 +449,22 @@ code {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cta {
+  /* No auto-motion: the strip becomes a plain swipeable row, without the duplicates. */
+  .carousel {
+    overflow-x: auto;
+    mask-image: none;
+  }
+
+  .faces {
+    animation: none;
+  }
+
+  .faces li[aria-hidden="true"] {
+    display: none;
+  }
+
+  .cta,
+  .mood {
     transition: none;
   }
 }

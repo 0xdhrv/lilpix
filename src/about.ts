@@ -15,7 +15,28 @@ function applyTheme() {
   }
   document.documentElement.dataset.theme =
     saved === "light" || saved === "dark" ? saved : dark.matches ? "dark" : "light";
+  syncThemeButton();
 }
+
+// Nav toggle: same storage key as the app, so the choice carries over.
+const themeButton = document.getElementById("theme") as HTMLButtonElement;
+function syncThemeButton() {
+  themeButton.setAttribute(
+    "aria-pressed",
+    String(document.documentElement.dataset.theme === "dark"),
+  );
+}
+themeButton.addEventListener("click", () => {
+  const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+  try {
+    localStorage.setItem("lilpix:theme", JSON.stringify(next));
+  } catch {
+    // Storage blocked: the choice just won't carry over.
+  }
+  applyTheme();
+});
+syncThemeButton();
+
 addEventListener("storage", (event) => {
   if (event.key === "lilpix:theme" || event.key === null) applyTheme();
 });
@@ -65,6 +86,39 @@ EXPRESSION_NAMES.forEach((name, i) => {
     item.append(key);
   }
   list.append(item);
+});
+
+// Infinite carousel: a second, hidden copy makes the -50% loop seamless.
+// Speed stays constant however many expressions there are.
+const copies = [...list.children].map((item) => {
+  const copy = item.cloneNode(true) as HTMLElement;
+  copy.setAttribute("aria-hidden", "true");
+  return copy;
+});
+list.append(...copies);
+list.style.setProperty("--duration", `${EXPRESSION_NAMES.length * 3}s`);
+
+// Hero face: cycles on its own, and on click. Reduced motion keeps it still until clicked.
+const moodScreen = document.getElementById("mood-screen")!;
+let mood = 0;
+function showMood() {
+  const [left, right] = eyeGrids(EXPRESSION_NAMES[mood]);
+  moodScreen.replaceChildren(eye(left), eye(right));
+}
+function nextMood() {
+  mood = (mood + 1) % EXPRESSION_NAMES.length;
+  showMood();
+}
+showMood();
+let timer: number | undefined;
+function autoCycle() {
+  clearInterval(timer);
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) timer = setInterval(nextMood, 2200);
+}
+autoCycle();
+document.getElementById("mood")!.addEventListener("click", () => {
+  nextMood();
+  autoCycle();
 });
 
 // The teardown figure is same-origin: size the iframe to its content so it never scrolls.
