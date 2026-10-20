@@ -10,6 +10,7 @@ import {
   type BackgroundName,
   type Theme,
 } from "./backgrounds.ts";
+import { SHELL_NAMES, SHELLS, shellValue, type ShellName } from "./shells.ts";
 import {
   FogIcon,
   FollowIcon,
@@ -46,6 +47,15 @@ function PixelEye({ rows }: { rows: string[] }) {
   );
 }
 
+// A single lit pixel, same unit as the eyes. Text stays for screen readers.
+function CurrentMark() {
+  return (
+    <span className="current">
+      <span className="sr-only">Current</span>
+    </span>
+  );
+}
+
 export function Face({ name }: { name: ExpressionName }) {
   const [left, right] = eyeGrids(name);
   return (
@@ -59,13 +69,14 @@ export function Face({ name }: { name: ExpressionName }) {
 type CommandMenuProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Render as a bottom drawer (mobile) instead of a centered dialog. */
-  drawer: boolean;
+  /** Touch device: don't auto-focus the search field (it would open the keyboard). */
+  touch: boolean;
   /** Highlighted item; controlled so cmdk reports keyboard and pointer moves. */
   highlighted: string;
   onHighlight: (value: string) => void;
   expression: ExpressionName;
   background: BackgroundName;
+  shell: ShellName;
   theme: Theme;
   sound: boolean;
   leds: boolean;
@@ -73,6 +84,7 @@ type CommandMenuProps = {
   fog: boolean;
   onExpression: (name: ExpressionName) => void;
   onBackground: (name: BackgroundName) => void;
+  onShell: (name: ShellName) => void;
   onToggleTheme: () => void;
   onToggleSound: () => void;
   onToggleLeds: () => void;
@@ -83,6 +95,7 @@ type CommandMenuProps = {
 function MenuBody({
   expression,
   background,
+  shell,
   theme,
   sound,
   leds,
@@ -90,6 +103,7 @@ function MenuBody({
   fog,
   onExpression,
   onBackground,
+  onShell,
   onToggleTheme,
   onToggleSound,
   onToggleLeds,
@@ -98,7 +112,7 @@ function MenuBody({
 }: CommandMenuProps) {
   return (
     <>
-      <Command.Input placeholder="Search expressions, backgrounds…" />
+      <Command.Input placeholder="Search" />
       <Command.List>
         <Command.Empty>Nothing found.</Command.Empty>
 
@@ -106,8 +120,8 @@ function MenuBody({
           {EXPRESSION_NAMES.map((name, i) => (
             <Command.Item key={name} value={name} onSelect={() => onExpression(name)}>
               <Face name={name} />
-              <span className="label">{name}</span>
-              {name === expression && <span className="current">Current</span>}
+              <span className="label name">{name}</span>
+              {name === expression && <CurrentMark />}
               {i < 9 && <kbd>{i + 1}</kbd>}
             </Command.Item>
           ))}
@@ -123,7 +137,22 @@ function MenuBody({
             >
               <span className="swatch" style={{ background: swatchCss(name, theme) }} />
               <span className="label">{backgroundFor(name).label}</span>
-              {name === background && <span className="current">Current</span>}
+              {name === background && <CurrentMark />}
+            </Command.Item>
+          ))}
+        </Command.Group>
+
+        <Command.Group heading="Shell">
+          {SHELL_NAMES.map((name) => (
+            <Command.Item
+              key={name}
+              value={shellValue(name)}
+              keywords={[SHELLS[name].label, "shell", "color", "body", "appearance"]}
+              onSelect={() => onShell(name)}
+            >
+              <span className="swatch" style={{ background: SHELLS[name].swatch }} />
+              <span className="label">{SHELLS[name].label}</span>
+              {name === shell && <CurrentMark />}
             </Command.Item>
           ))}
         </Command.Group>
@@ -223,41 +252,24 @@ function MenuBody({
 }
 
 export function CommandMenu(props: CommandMenuProps) {
-  const { open, onOpenChange, drawer, highlighted, onHighlight } = props;
-
-  if (drawer) {
-    return (
-      <Drawer.Root open={open} onOpenChange={onOpenChange}>
-        <Drawer.Portal>
-          <Drawer.Overlay className="drawer-overlay" />
-          <Drawer.Content
-            className="drawer-content"
-            // Keep the on-screen keyboard closed until the user taps the search field.
-            onOpenAutoFocus={(e) => e.preventDefault()}
-          >
-            <Drawer.Handle className="drawer-handle" />
-            <Drawer.Title className="sr-only">Command menu</Drawer.Title>
-            <Command label="Command menu" value={highlighted} onValueChange={onHighlight} loop>
-              <MenuBody {...props} />
-            </Command>
-          </Drawer.Content>
-        </Drawer.Portal>
-      </Drawer.Root>
-    );
-  }
+  const { open, onOpenChange, touch, highlighted, onHighlight } = props;
 
   return (
-    <Command.Dialog
-      open={open}
-      onOpenChange={onOpenChange}
-      label="Command menu"
-      value={highlighted}
-      onValueChange={onHighlight}
-      loop
-      overlayClassName="cmdk-overlay"
-      contentClassName="cmdk-content"
-    >
-      <MenuBody {...props} />
-    </Command.Dialog>
+    <Drawer.Root open={open} onOpenChange={onOpenChange}>
+      <Drawer.Portal>
+        <Drawer.Overlay className="drawer-overlay" />
+        <Drawer.Content
+          className="drawer-content"
+          // Keep the on-screen keyboard closed until the user taps the search field.
+          onOpenAutoFocus={touch ? (e) => e.preventDefault() : undefined}
+        >
+          <Drawer.Handle className="drawer-handle" />
+          <Drawer.Title className="sr-only">Command menu</Drawer.Title>
+          <Command label="Command menu" value={highlighted} onValueChange={onHighlight} loop>
+            <MenuBody {...props} />
+          </Command>
+        </Drawer.Content>
+      </Drawer.Portal>
+    </Drawer.Root>
   );
 }

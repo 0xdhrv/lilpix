@@ -8,6 +8,16 @@ body,
   height: 100%;
 }
 
+.fallback {
+  display: grid;
+  place-content: center;
+  height: 100%;
+  margin: 0;
+  padding: 24px;
+  text-align: center;
+  text-wrap: balance;
+}
+
 kbd {
   font: inherit;
   font-variant-numeric: tabular-nums;
@@ -58,18 +68,18 @@ kbd {
 
 .toolbar {
   position: fixed;
-  top: 16px;
-  left: 16px;
+  top: max(16px, env(safe-area-inset-top));
+  left: max(16px, env(safe-area-inset-left));
   display: flex;
   gap: 4px;
   padding: 4px;
   border-radius: 12px;
   background: var(--surface);
-  backdrop-filter: blur(12px);
 }
 
 .toolbar button,
 .toolbar a {
+  position: relative;
   display: grid;
   place-items: center;
   width: 32px;
@@ -79,11 +89,28 @@ kbd {
   background: transparent;
   color: var(--fg);
   cursor: pointer;
+  transition: scale 120ms ease;
 }
 
-.toolbar button:hover,
-.toolbar a:hover {
-  background: var(--hover);
+/* Grow the tap target to 44px without growing the visuals. */
+.toolbar button::after,
+.toolbar a::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+}
+
+.toolbar button:active,
+.toolbar a:active,
+.menu-trigger:active {
+  scale: 0.97;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .toolbar button:hover,
+  .toolbar a:hover {
+    background: var(--hover);
+  }
 }
 
 .toolbar button:focus-visible,
@@ -108,34 +135,13 @@ kbd {
   border: 0;
   border-radius: 999px;
   background: var(--surface);
-  backdrop-filter: blur(12px);
   box-shadow: var(--shadow);
   color: var(--fg);
   cursor: pointer;
+  transition: scale 120ms ease;
 }
 
-/* Desktop command dialog. Overlay stays transparent so live previews are visible. */
-
-.cmdk-overlay {
-  position: fixed;
-  inset: 0;
-}
-
-.cmdk-content {
-  position: fixed;
-  left: 50%;
-  top: 24px;
-  translate: -50% 0;
-  width: min(440px, calc(100vw - 32px));
-  overflow: hidden;
-  border-radius: 14px;
-  background: var(--surface);
-  backdrop-filter: blur(16px);
-  box-shadow: var(--shadow);
-  color: var(--fg);
-}
-
-/* Mobile drawer (vaul) */
+/* Command drawer (vaul), bottom sheet on every device */
 
 .drawer-overlay {
   position: fixed;
@@ -143,24 +149,42 @@ kbd {
   background: rgb(0 0 0 / 0.2);
 }
 
+/* Keep the live preview unobscured when a mouse is driving. */
+@media (hover: hover) and (pointer: fine) {
+  .drawer-overlay {
+    background: transparent;
+  }
+}
+
 .drawer-content {
   position: fixed;
   inset: auto 0 0;
+  width: min(480px, 100%);
+  margin-inline: auto;
   display: flex;
   flex-direction: column;
   max-height: 55dvh;
   padding-bottom: env(safe-area-inset-bottom);
   border-radius: 16px 16px 0 0;
-  background: var(--surface);
-  backdrop-filter: blur(16px);
+  background: color-mix(in srgb, var(--bg) 90%, transparent);
+  backdrop-filter: blur(24px);
   box-shadow: var(--shadow);
   color: var(--fg);
   outline: none;
 }
 
-.drawer-handle {
+/* Mouse: a compact floating card that leaves the bot in view. */
+@media (hover: hover) and (pointer: fine) {
+  .drawer-content {
+    bottom: 16px;
+    max-height: min(380px, 40dvh);
+    border-radius: 16px;
+  }
+}
+
+.drawer-content .drawer-handle[data-vaul-handle] {
   margin: 8px auto 2px;
-  background: var(--border) !important;
+  background: var(--border);
 }
 
 .drawer-content [cmdk-root] {
@@ -174,17 +198,26 @@ kbd {
   flex: 1;
 }
 
-/* cmdk parts, shared by dialog and drawer */
+/* cmdk parts, shared by dialog and drawer. Sans for reading; pixel stays on headings and the faces. */
+
+.drawer-content {
+  font:
+    500 14px/1.3 system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
 
 [cmdk-input] {
   width: 100%;
   box-sizing: border-box;
-  padding: 14px 16px;
+  padding: 12px 16px;
   border: 0;
   border-bottom: 1px solid var(--border);
   background: transparent;
   font: inherit;
-  font-size: 16px;
+  font-size: 16px; /* 16px stops iOS zooming on focus */
   color: inherit;
   outline: none;
 }
@@ -202,6 +235,7 @@ kbd {
 }
 
 [cmdk-group-heading] {
+  font-family: var(--font-pixel);
   padding: 10px 8px 6px;
   font-size: 12px;
   color: var(--muted);
@@ -213,14 +247,23 @@ kbd {
   gap: 10px;
   min-height: 38px;
   padding: 4px 8px;
-  border-radius: 9px;
-  text-transform: capitalize;
+  border-radius: 8px; /* content radius 14 minus list padding 6 */
   cursor: pointer;
   user-select: none;
 }
 
+@media (pointer: coarse) {
+  [cmdk-item] {
+    min-height: 44px;
+  }
+}
+
 [cmdk-item][data-selected="true"] {
   background: var(--hover);
+}
+
+[cmdk-item] .name {
+  text-transform: capitalize;
 }
 
 [cmdk-item] .label {
@@ -228,9 +271,10 @@ kbd {
 }
 
 [cmdk-item] .current {
-  font-size: 12px;
-  color: var(--muted);
-  text-transform: none;
+  width: 6px;
+  height: 6px;
+  flex: none;
+  background: var(--fg);
 }
 
 [cmdk-empty] {

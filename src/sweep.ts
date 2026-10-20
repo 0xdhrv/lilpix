@@ -8,7 +8,7 @@ import { createShader, playSweep, type Direction } from "glimm";
 // reduced motion) navigate normally.
 //
 // Must run before first render on both pages, so the importing entry script
-// carries blocking="render".
+// carries blocking="render". Keep that entry small; main.tsx lazy-loads the scene.
 
 const ATTR = "data-sweep";
 const LAYER = "glimm-layer";
@@ -86,7 +86,7 @@ addEventListener("pagereveal", (event) => {
       {
         palette: "prism",
         direction,
-        sweepMs: 1000,
+        sweepMs: 550,
         brightness: root.dataset.theme === "dark" ? 0.85 : 1,
       },
     );

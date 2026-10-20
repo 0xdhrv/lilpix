@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { RoundedBox } from "@react-three/drei";
 import {
-  BoxGeometry,
+  PlaneGeometry,
   Color,
   MathUtils,
   MeshBasicMaterial,
@@ -13,13 +13,13 @@ import {
 } from "three";
 import { eyeGrids, ledsFor, type ExpressionName, type Leds } from "./expressions.ts";
 import { tilt } from "./tilt.ts";
+import { SHELLS, type ShellName } from "./shells.ts";
 
 // Geometry traced from the source SVG: 1 unit = 10 SVG px, origin at the
 // body's center (1819.5, 736), SVG y flipped to point up.
 const DEPTH = 12;
 const FRONT = DEPTH / 2;
 
-const BODY = "#2d2c2d";
 const INK = "#000000";
 const EYE = "#f2f2f2";
 
@@ -45,10 +45,16 @@ const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 // Every lit eye pixel is one instance of a single mesh: one draw call for the
 // whole face, however many pixels an expression uses.
 const MAX_PIXELS = 96;
-const pixelGeometry = new BoxGeometry(PIXEL, PIXEL, 0.12);
-// Unlit, so the eyes stay under the bloom threshold.
+// A flat quad, not a box: side walls would read as bevels when the bot tilts.
+const pixelGeometry = new PlaneGeometry(PIXEL, PIXEL).translate(0, 0, 0.06);
+// Unlit and pushed past the bloom threshold (1) so the eyes glow like the LEDs.
 // Fog skips the eyes and LEDs so the face and glow stay crisp through the haze.
-const pixelMaterial = new MeshBasicMaterial({ color: EYE, toneMapped: false, fog: false });
+const pixelMaterial = new MeshBasicMaterial({
+  color: EYE,
+  toneMapped: false,
+  fog: false,
+});
+pixelMaterial.color.multiplyScalar(1.25);
 const dummy = new Object3D();
 
 function EyePixels({ left, right }: { left: string[]; right: string[] }) {
@@ -131,6 +137,7 @@ function Led({ x, index, leds, on }: { x: number; index: number; leds: Leds; on:
 
 type BotProps = {
   expression: ExpressionName;
+  shell: ShellName;
   /** LEDs stay dark until switched on. */
   leds: boolean;
   /** Look toward the pointer (or the phone's tilt). Off eases back to center. */
@@ -138,7 +145,8 @@ type BotProps = {
   onClick?: () => void;
 };
 
-export function Bot({ expression, leds, follow, onClick }: BotProps) {
+export function Bot({ expression, shell, leds, follow, onClick }: BotProps) {
+  const BODY = SHELLS[shell].body;
   const body = useRef<Group>(null);
   const eyes = useRef<Group>(null);
   // Smoothed look direction, before snapping.

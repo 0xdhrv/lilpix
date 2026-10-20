@@ -11,7 +11,7 @@
 :root {
   --bg: #e9e7e4;
   --fg: #2d2c2d;
-  --muted: rgb(45 44 45 / 0.5);
+  --muted: rgb(45 44 45 / 0.7);
   --surface: rgb(255 255 255 / 0.8);
   --hover: rgb(0 0 0 / 0.06);
   --border: rgb(0 0 0 / 0.08);
@@ -24,7 +24,7 @@
 :root[data-theme="dark"] {
   --bg: #141416;
   --fg: #ececee;
-  --muted: rgb(236 236 238 / 0.5);
+  --muted: rgb(236 236 238 / 0.7);
   --surface: rgb(28 28 32 / 0.8);
   --hover: rgb(255 255 255 / 0.08);
   --border: rgb(255 255 255 / 0.08);
@@ -35,6 +35,7 @@
 html,
 body {
   margin: 0;
+  font-synthesis: none;
   background: var(--bg);
   color: var(--fg);
 }

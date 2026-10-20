@@ -16,6 +16,7 @@ import {
   type BackgroundName,
   type Theme,
 } from "./backgrounds.ts";
+import { SHELL_NAMES, shellValue, type ShellName } from "./shells.ts";
 import { Bot } from "./Bot.tsx";
 import { CameraFit } from "./CameraFit.tsx";
 import { SceneFog } from "./SceneFog.tsx";
@@ -35,6 +36,14 @@ import {
 import { playExpression } from "./sounds.ts";
 import { enableTilt, tiltNeedsPermission } from "./tilt.ts";
 
+const hasWebGL = (() => {
+  try {
+    return !!document.createElement("canvas").getContext("webgl2");
+  } catch {
+    return false;
+  }
+})();
+
 const MAX_DPR = Math.min(devicePixelRatio, 1.75);
 
 const isExpression = (value: string): value is ExpressionName =>
@@ -42,6 +51,11 @@ const isExpression = (value: string): value is ExpressionName =>
 
 const isBackground = (value: unknown): value is BackgroundName =>
   BACKGROUND_NAMES.includes(value as BackgroundName);
+
+const isShell = (value: unknown): value is ShellName => SHELL_NAMES.includes(value as ShellName);
+
+const shellFromValue = (value: string) =>
+  SHELL_NAMES.find((name) => shellValue(name) === value) ?? null;
 
 const isTheme = (value: unknown): value is Theme => value === "light" || value === "dark";
 
@@ -55,6 +69,7 @@ export default function App() {
     () => "studio",
     isBackground,
   );
+  const [shell, setShell] = usePersistent<ShellName>("lilpix:shell", () => "graphite", isShell);
   const [theme, setTheme] = usePersistent<Theme>(
     "lilpix:theme",
     () => (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"),
@@ -70,9 +85,12 @@ export default function App() {
   const [dpr, setDpr] = useState(MAX_DPR);
   // Item highlighted in the open menu; expressions and backgrounds preview live.
   const [highlighted, setHighlighted] = useState<string | null>(null);
-  const mobile = useMediaQuery("(max-width: 640px)");
+  // Touch devices get the drawer and a visible trigger at any width; ⌘K needs a keyboard.
+  const mobile = useMediaQuery("(max-width: 640px), (pointer: coarse)");
+  const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
 
   const previewExpression = highlighted && isExpression(highlighted) ? highlighted : null;
+  const previewShell = highlighted ? shellFromValue(highlighted) : null;
   const previewBackground = highlighted ? backgroundFromValue(highlighted) : null;
 
   useEffect(() => {
@@ -135,6 +153,15 @@ export default function App() {
 
   const dark = theme === "dark";
 
+  if (!hasWebGL) {
+    return (
+      <p className="fallback">
+        lilpix needs WebGL to draw its 3D robot, and this browser has it turned off or does not
+        support it.
+      </p>
+    );
+  }
+
   return (
     <>
       {/* The scene is all canvas, so give crawlers and screen readers a heading. */}
@@ -190,9 +217,14 @@ export default function App() {
           />
         </Environment>
 
-        <Float speed={2} rotationIntensity={0.25} floatIntensity={0.8}>
+        <Float
+          speed={2}
+          rotationIntensity={reducedMotion ? 0 : 0.25}
+          floatIntensity={reducedMotion ? 0 : 0.8}
+        >
           <Bot
             expression={previewExpression ?? expression}
+            shell={previewShell ?? shell}
             leds={leds}
             follow={follow}
             onClick={cycle}
@@ -227,20 +259,10 @@ export default function App() {
         >
           {dark ? <SunIcon /> : <MoonIcon />}
         </button>
-        <button
-          type="button"
-          onClick={toggleSound}
-          aria-label={sound ? "Mute sounds" : "Unmute sounds"}
-          aria-pressed={!sound}
-        >
+        <button type="button" onClick={toggleSound} aria-label="Sound" aria-pressed={sound}>
           {sound ? <SoundOnIcon /> : <SoundOffIcon />}
         </button>
-        <button
-          type="button"
-          onClick={toggleLeds}
-          aria-label={leds ? "Turn LEDs off" : "Turn LEDs on"}
-          aria-pressed={leds}
-        >
+        <button type="button" onClick={toggleLeds} aria-label="LEDs" aria-pressed={leds}>
           {leds ? <LedOnIcon /> : <LedOffIcon />}
         </button>
         <a href="/about/" aria-label="About lilpix">
@@ -262,11 +284,12 @@ export default function App() {
       <CommandMenu
         open={menuOpen}
         onOpenChange={setOpen}
-        drawer={mobile}
+        touch={mobile}
         highlighted={highlighted ?? expression}
         onHighlight={setHighlighted}
         expression={expression}
         background={background}
+        shell={shell}
         theme={theme}
         sound={sound}
         leds={leds}
@@ -278,6 +301,10 @@ export default function App() {
         }}
         onBackground={(name) => {
           setBackground(name);
+          setOpen(false);
+        }}
+        onShell={(name) => {
+          setShell(name);
           setOpen(false);
         }}
         // Toggles keep the menu open so the change is visible right away.

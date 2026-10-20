@@ -65,6 +65,54 @@ export const BACKGROUNDS = {
     light: { base: "#e9f0ff", stops: ["#c2d3f5", "#8aa8e4"] },
     dark: { base: "#0b1d42", stops: ["#1a3570", "#3263b3"] },
   },
+  sunset: {
+    label: "Sunset",
+    kind: "linear",
+    light: { base: "#ffc89b", stops: ["#ffe9c9", "#ffb38a", "#f08aa0"] },
+    dark: { base: "#2a0f26", stops: ["#150a2e", "#5a1f45", "#c4553f"] },
+  },
+  forest: {
+    label: "Forest",
+    kind: "radial",
+    light: { base: "#c9e3c4", stops: ["#f2fbee", "#cfe8c9", "#9cc79a"] },
+    dark: { base: "#07140c", stops: ["#1e4a2c", "#0c2416", "#020805"] },
+  },
+  candy: {
+    label: "Candy",
+    kind: "linear",
+    light: { base: "#ffd9ec", stops: ["#c8f1ff", "#ffd9ec", "#fff1b8"] },
+    dark: { base: "#2a1236", stops: ["#1a1245", "#4a1f66", "#7a2a62"] },
+  },
+  rose: {
+    label: "Rose",
+    kind: "radial",
+    light: { base: "#f4c9d2", stops: ["#fff1f3", "#f7d2d9", "#e4a0ae"] },
+    dark: { base: "#1a070d", stops: ["#5a1f30", "#2a0d17", "#080204"] },
+  },
+  matrix: {
+    label: "Matrix",
+    kind: "grid",
+    light: { base: "#e6f6e9", stops: ["#b9dfc0", "#6fb77f"] },
+    dark: { base: "#020a05", stops: ["#0c3a1c", "#18a84a"] },
+  },
+  paper: {
+    label: "Paper",
+    kind: "solid",
+    light: { base: "#f5f1e8", stops: [] },
+    dark: { base: "#1c1a16", stops: [] },
+  },
+  nebula: {
+    label: "Nebula",
+    kind: "sparkles",
+    light: { base: "#dcd4f2", stops: ["#b36bd6"] },
+    dark: { base: "#0b0420", stops: ["#ff9de2"] },
+  },
+  ember: {
+    label: "Ember",
+    kind: "radial",
+    light: { base: "#f7d3b8", stops: ["#fff0e0", "#f8cfa8", "#e89a6a"] },
+    dark: { base: "#120503", stops: ["#6a2410", "#2a0e07", "#060201"] },
+  },
 } satisfies Record<string, Background>;
 
 export type BackgroundName = keyof typeof BACKGROUNDS;
