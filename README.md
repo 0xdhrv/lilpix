@@ -51,7 +51,7 @@ pnpm dev
 
 ## How it's built
 
-[React](https://react.dev) + [React Three Fiber](https://r3f.docs.pmnd.rs) on [three.js](https://threejs.org), with [drei](https://drei.docs.pmnd.rs) helpers and a bloom pass from [postprocessing](https://github.com/pmndrs/react-postprocessing). Menu by [cmdk](https://cmdk.paco.me) and [vaul](https://vaul.emilkowal.ski), sounds by [@web-kits/audio](https://www.npmjs.com/package/@web-kits/audio), icons by [Phosphor](https://phosphoricons.com).
+[React](https://react.dev) + [React Three Fiber](https://r3f.docs.pmnd.rs) on [three.js](https://threejs.org), with [drei](https://drei.docs.pmnd.rs) helpers and a bloom pass from [postprocessing](https://github.com/pmndrs/react-postprocessing). Menu by [cmdk](https://cmdk.paco.me) and [vaul](https://vaul.emilkowal.ski), sounds by [@web-kits/audio](https://www.npmjs.com/package/@web-kits/audio), icons from [Phosphor](https://phosphoricons.com), inlined.
 
 ```
 src/
@@ -67,7 +67,7 @@ src/
 ├── SceneFog.tsx     Optional fog that scales with camera distance
 ├── tilt.ts          Device-orientation input for phones
 ├── hooks.ts         usePersistent, useMediaQuery
-└── icons.tsx        Phosphor icons at one size and weight
+└── icons.tsx        inlined Phosphor icons
 about/index.html     Static about page, built alongside the app
 scripts/loop-svg.ts  Generates the animated SVG above
 og/og.html           Source for the social preview image

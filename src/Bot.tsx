@@ -2,14 +2,15 @@ import { useEffect, useLayoutEffect, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { RoundedBox } from "@react-three/drei";
 import {
+  BoxGeometry,
   PlaneGeometry,
   Color,
   MathUtils,
   MeshBasicMaterial,
+  MeshStandardMaterial,
   Object3D,
   type Group,
   type InstancedMesh,
-  type MeshStandardMaterial,
 } from "three";
 import { eyeGrids, ledsFor, type ExpressionName, type Leds } from "./expressions.ts";
 import { tilt } from "./tilt.ts";
@@ -57,6 +58,48 @@ const pixelMaterial = new MeshBasicMaterial({
 pixelMaterial.color.multiplyScalar(1.25);
 const dummy = new Object3D();
 
+// Decorative meshes never take pointer events: the invisible hit box below
+// answers for the whole bot, so a pointer move doesn't test every triangle.
+const noRaycast = () => null;
+
+// One shell material for the body and ears; a shell change just recolors it.
+const shellMaterial = new MeshStandardMaterial({ roughness: 0.55, metalness: 0.1 });
+const ventMaterial = new MeshStandardMaterial({ color: INK, roughness: 0.9 });
+const bezelMaterial = new MeshStandardMaterial({ color: INK, roughness: 0.4 });
+const ventGeometry = new BoxGeometry(0.04, 6.7, 0.3);
+// The black slot behind each LED lens.
+const bezelGeometry = new BoxGeometry(1.75, 1.75, 0.1);
+const lensGeometry = new BoxGeometry(1.1, 1.1, 0.06);
+
+/** Identical parts that never move, drawn as one instanced mesh. */
+function StaticInstances({
+  geometry,
+  material,
+  positions,
+}: {
+  geometry: BoxGeometry;
+  material: MeshStandardMaterial;
+  positions: [number, number, number][];
+}) {
+  const mesh = useRef<InstancedMesh>(null);
+
+  useLayoutEffect(() => {
+    positions.forEach((position, i) => {
+      dummy.position.set(...position);
+      dummy.updateMatrix();
+      mesh.current!.setMatrixAt(i, dummy.matrix);
+    });
+    mesh.current!.instanceMatrix.needsUpdate = true;
+  }, [positions]);
+
+  return (
+    <instancedMesh ref={mesh} args={[geometry, material, positions.length]} raycast={noRaycast} />
+  );
+}
+
+const VENT_POSITIONS = VENTS.map((z): [number, number, number] => [EAR_HX + 0.005, 0, z]);
+const BEZEL_POSITIONS = SLOTS.map((x): [number, number, number] => [x, 6.2, FRONT + 0.01]);
+
 function EyePixels({ left, right }: { left: string[]; right: string[] }) {
   const mesh = useRef<InstancedMesh>(null);
 
@@ -79,15 +122,36 @@ function EyePixels({ left, right }: { left: string[]; right: string[] }) {
     mesh.current.instanceMatrix.needsUpdate = true;
   }, [left, right]);
 
-  return <instancedMesh ref={mesh} args={[pixelGeometry, pixelMaterial, MAX_PIXELS]} />;
+  // Culling is off: the bounding sphere is fixed by the first expression, and
+  // wider ones would pop out at the screen's edge.
+  return (
+    <instancedMesh
+      ref={mesh}
+      args={[pixelGeometry, pixelMaterial, MAX_PIXELS]}
+      frustumCulled={false}
+      raycast={noRaycast}
+    />
+  );
 }
 
 // Target bloom luminance for every LED, so blue glows as strongly as green.
 const LED_GLOW = 2;
 const scratch = new Color();
+const colorCache = new Map<string, { color: Color; gain: number }>();
 
 function luminance(c: Color) {
   return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+}
+
+// Parsed once per color, not per frame.
+function ledColor(hex: string) {
+  let entry = colorCache.get(hex);
+  if (!entry) {
+    const color = new Color(hex);
+    entry = { color, gain: Math.min(14, LED_GLOW / luminance(color)) };
+    colorCache.set(hex, entry);
+  }
+  return entry;
 }
 
 function ledLevel({ mode, speed }: Leds, t: number, i: number) {
@@ -103,35 +167,53 @@ function ledLevel({ mode, speed }: Leds, t: number, i: number) {
   }
 }
 
-function Led({ x, index, leds, on }: { x: number; index: number; leds: Leds; on: boolean }) {
-  const material = useRef<MeshStandardMaterial>(null);
+function Leds({ leds, on }: { leds: Leds; on: boolean }) {
+  const lenses = useRef<(MeshStandardMaterial | null)[]>([]);
+  // What the lenses currently show, so a static or dark LED costs nothing per frame.
+  const applied = useRef<{ leds: Leds; on: boolean } | null>(null);
 
   useFrame(({ clock }) => {
-    if (!material.current) return;
+    const animated = on && leds.mode !== "steady";
+    const last = applied.current;
+    if (!animated && last && last.leds === leds && last.on === on) return;
+    applied.current = { leds, on };
+
     const t = clock.elapsedTime;
-    if (leds.mode === "rainbow") {
-      scratch.setHSL((t * leds.speed + index / 3) % 1, 1, 0.5);
-    } else {
-      scratch.set(leds.colors[index]);
-    }
-    const level = on ? ledLevel(leds, t, index) : 0;
-    material.current.emissive.copy(scratch);
-    material.current.emissiveIntensity = Math.min(14, LED_GLOW / luminance(scratch)) * level;
+    lenses.current.forEach((material, i) => {
+      if (!material) return;
+      let color: Color;
+      let gain: number;
+      if (leds.mode === "rainbow") {
+        color = scratch.setHSL((t * leds.speed + i / 3) % 1, 1, 0.5);
+        gain = Math.min(14, LED_GLOW / luminance(color));
+      } else {
+        ({ color, gain } = ledColor(leds.colors[i]));
+      }
+      material.emissive.copy(color);
+      material.emissiveIntensity = gain * (on ? ledLevel(leds, t, i) : 0);
+    });
   });
 
   return (
-    <group position={[x, 6.2, FRONT]}>
-      {/* Bezel: the original black slot */}
-      <mesh position-z={0.01}>
-        <boxGeometry args={[1.75, 1.75, 0.1]} />
-        <meshStandardMaterial color={INK} roughness={0.4} />
-      </mesh>
-      {/* Lens */}
-      <mesh position-z={0.08}>
-        <boxGeometry args={[1.1, 1.1, 0.06]} />
-        <meshStandardMaterial ref={material} color={INK} toneMapped={false} fog={false} />
-      </mesh>
-    </group>
+    <>
+      <StaticInstances
+        geometry={bezelGeometry}
+        material={bezelMaterial}
+        positions={BEZEL_POSITIONS}
+      />
+      {SLOTS.map((x, i) => (
+        <mesh key={x} position={[x, 6.2, FRONT + 0.08]} geometry={lensGeometry} raycast={noRaycast}>
+          <meshStandardMaterial
+            ref={(m) => {
+              lenses.current[i] = m;
+            }}
+            color={INK}
+            toneMapped={false}
+            fog={false}
+          />
+        </mesh>
+      ))}
+    </>
   );
 }
 
@@ -157,6 +239,10 @@ export function Bot({ expression, shell, leds, follow, onClick }: BotProps) {
   useEffect(() => {
     if (eyes.current) eyes.current.scale.y = 0.05;
   }, [expression]);
+
+  useLayoutEffect(() => {
+    shellMaterial.color.set(BODY);
+  }, [BODY]);
 
   useFrame(({ clock, pointer }, delta) => {
     // Clamp long frames (tab switches) so damping never jumps.
@@ -190,26 +276,37 @@ export function Bot({ expression, shell, leds, follow, onClick }: BotProps) {
       onPointerOver={() => (document.body.style.cursor = "pointer")}
       onPointerOut={() => (document.body.style.cursor = "")}
     >
+      {/* Invisible hit box standing in for the body and ears. */}
+      <mesh visible={false}>
+        <boxGeometry args={[17.7, 15.8, DEPTH]} />
+      </mesh>
+
       {/* Main body (x 1741–1899, y 657–815) */}
-      <RoundedBox args={[15.8, 15.8, DEPTH]} radius={0.25} smoothness={4} castShadow receiveShadow>
-        <meshStandardMaterial color={BODY} roughness={0.55} metalness={0.1} />
-      </RoundedBox>
+      <RoundedBox
+        args={[15.8, 15.8, DEPTH]}
+        radius={0.25}
+        smoothness={4}
+        material={shellMaterial}
+        castShadow
+        receiveShadow
+        raycast={noRaycast}
+      />
 
       {/* Side ears (x 1731–1908, y 666–806) */}
-      <RoundedBox args={[17.7, 14, DEPTH - 1]} radius={0.25} smoothness={4} castShadow>
-        <meshStandardMaterial color={BODY} roughness={0.55} metalness={0.1} />
-      </RoundedBox>
+      <RoundedBox
+        args={[17.7, 14, DEPTH - 1]}
+        radius={0.25}
+        smoothness={4}
+        material={shellMaterial}
+        castShadow
+        raycast={noRaycast}
+      />
 
       {/* Vent slots on the right side */}
-      {VENTS.map((z) => (
-        <mesh key={z} position={[EAR_HX + 0.005, 0, z]}>
-          <boxGeometry args={[0.04, 6.7, 0.3]} />
-          <meshStandardMaterial color={INK} roughness={0.9} />
-        </mesh>
-      ))}
+      <StaticInstances geometry={ventGeometry} material={ventMaterial} positions={VENT_POSITIONS} />
 
       {/* Screen (x 1749–1891, y 701–799) */}
-      <mesh position={[0, -1.4, FRONT + 0.01]}>
+      <mesh position={[0, -1.4, FRONT + 0.01]} raycast={noRaycast}>
         <boxGeometry args={[14.2, 9.8, 0.1]} />
         {/* Unfogged, so the face keeps full contrast against the eyes. */}
         <meshPhysicalMaterial
@@ -227,9 +324,7 @@ export function Bot({ expression, shell, leds, follow, onClick }: BotProps) {
       </group>
 
       {/* RGB LEDs in the top slots */}
-      {SLOTS.map((x, i) => (
-        <Led key={x} x={x} index={i} leds={ledsFor(expression)} on={leds} />
-      ))}
+      <Leds leds={ledsFor(expression)} on={leds} />
     </group>
   );
 }

@@ -3,6 +3,19 @@
   "version": "1.0.0",
   "private": true,
   "description": "A tiny 3D robot with a pixel-art face, built with React Three Fiber.",
+  "keywords": [
+    "3d",
+    "interactive",
+    "pixel-art",
+    "react",
+    "react-three-fiber",
+    "robot",
+    "threejs",
+    "typescript",
+    "vite",
+    "web-toy",
+    "webgl"
+  ],
   "homepage": "https://lilpix.dhrv.pw",
   "bugs": {
     "url": "https://github.com/0xdhrv/lilpix/issues"
@@ -25,7 +38,6 @@
   },
   "dependencies": {
     "@evilmartians/harmony": "^1.4.0",
-    "@phosphor-icons/react": "^2.1.10",
     "@react-three/drei": "^10.7.9",
     "@react-three/fiber": "^9.8.2",
     "@react-three/postprocessing": "^3.2.0",
