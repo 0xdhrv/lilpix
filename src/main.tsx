@@ -2,10 +2,15 @@ import { lazy, StrictMode, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import "./sweep.ts";
+import { LazyApp } from "./LazyApp.tsx";
 
-// The scene (three.js and friends) loads after the small render-blocking entry,
-// so first paint does not wait for it.
-const App = lazy(() => import("./App.tsx"));
+// react-three-fiber 9 still builds a THREE.Clock, which three now warns about on
+// every canvas. Nothing here can change that, so drop just that line.
+const warn = console.warn.bind(console);
+console.warn = (...args: unknown[]) => {
+  if (typeof args[0] === "string" && args[0].startsWith("THREE.Clock:")) return;
+  warn(...args);
+};
 
 // Dev-only feedback toolbar; the DEV check lets the bundler drop it from production.
 const Agentation = import.meta.env.DEV
@@ -15,7 +20,7 @@ const Agentation = import.meta.env.DEV
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Suspense fallback={null}>
-      <App />
+      <LazyApp />
     </Suspense>
     {Agentation && (
       <Suspense fallback={null}>

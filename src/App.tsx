@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import {
   Environment,
   Float,
@@ -19,6 +19,7 @@ import {
 import { SHELL_NAMES, shellValue, type ShellName } from "./shells.ts";
 import { Bot } from "./Bot.tsx";
 import { CameraFit } from "./CameraFit.tsx";
+import { Intro } from "./Intro.tsx";
 import { SceneFog } from "./SceneFog.tsx";
 import { CommandMenu } from "./CommandMenu.tsx";
 import { EXPRESSION_NAMES, type ExpressionName } from "./expressions.ts";
@@ -38,13 +39,28 @@ import { enableTilt, tiltNeedsPermission } from "./tilt.ts";
 
 const hasWebGL = (() => {
   try {
-    return !!document.createElement("canvas").getContext("webgl2");
+    const gl = document.createElement("canvas").getContext("webgl2");
+    // Release the probe's context right away; browsers cap how many stay live.
+    gl?.getExtension("WEBGL_lose_context")?.loseContext();
+    return !!gl;
   } catch {
     return false;
   }
 })();
 
 const MAX_DPR = Math.min(devicePixelRatio, 1.75);
+
+// Steps the render resolution down while frames drop and back up once there's
+// headroom. Goes straight to the renderer, so the React tree doesn't re-render.
+function AdaptiveResolution() {
+  const setDpr = useThree((s) => s.setDpr);
+  return (
+    <PerformanceMonitor
+      factor={1}
+      onChange={({ factor }) => setDpr(Math.round((1 + (MAX_DPR - 1) * factor) * 4) / 4)}
+    />
+  );
+}
 
 const isExpression = (value: string): value is ExpressionName =>
   EXPRESSION_NAMES.includes(value as ExpressionName);
@@ -80,9 +96,6 @@ export default function App() {
   const [follow, setFollow] = usePersistent("lilpix:follow", () => true);
   const [fog, setFog] = usePersistent("lilpix:fog", () => false);
   const [menuOpen, setMenuOpen] = useState(false);
-  // Render resolution, stepped down by PerformanceMonitor while frames drop and
-  // back up once there's headroom again.
-  const [dpr, setDpr] = useState(MAX_DPR);
   // Item highlighted in the open menu; expressions and backgrounds preview live.
   const [highlighted, setHighlighted] = useState<string | null>(null);
   // Touch devices get the drawer and a visible trigger at any width; ⌘K needs a keyboard.
@@ -170,16 +183,13 @@ export default function App() {
         Click the bot to cycle its expressions, or press ⌘K for the command menu.
       </p>
       <Canvas
-        shadows
-        dpr={dpr}
+        shadows="percentage"
+        dpr={[1, MAX_DPR]}
         // The effect composer does its own multisampling, so skip it on the canvas.
         gl={{ antialias: false, powerPreference: "high-performance" }}
         camera={{ fov: 35 }}
       >
-        <PerformanceMonitor
-          factor={1}
-          onChange={({ factor }) => setDpr(Math.round((1 + (MAX_DPR - 1) * factor) * 4) / 4)}
-        />
+        <AdaptiveResolution />
         <CameraFit />
         <Backdrop name={previewBackground ?? background} theme={theme} />
         {fog && (
@@ -217,19 +227,21 @@ export default function App() {
           />
         </Environment>
 
-        <Float
-          speed={2}
-          rotationIntensity={reducedMotion ? 0 : 0.25}
-          floatIntensity={reducedMotion ? 0 : 0.8}
-        >
-          <Bot
-            expression={previewExpression ?? expression}
-            shell={previewShell ?? shell}
-            leds={leds}
-            follow={follow}
-            onClick={cycle}
-          />
-        </Float>
+        <Intro skip={reducedMotion}>
+          <Float
+            speed={2}
+            rotationIntensity={reducedMotion ? 0 : 0.25}
+            floatIntensity={reducedMotion ? 0 : 0.8}
+          >
+            <Bot
+              expression={previewExpression ?? expression}
+              shell={previewShell ?? shell}
+              leds={leds}
+              follow={follow}
+              onClick={cycle}
+            />
+          </Float>
+        </Intro>
 
         {/* Shadow catcher: only the shadow is drawn, so there's no visible floor edge. */}
         <mesh position={[0, -11, 0]} rotation-x={-Math.PI / 2} receiveShadow>
