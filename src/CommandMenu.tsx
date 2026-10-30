@@ -11,6 +11,7 @@ import {
   type Theme,
 } from "./backgrounds.ts";
 import { SHELL_NAMES, SHELLS, shellValue, type ShellName } from "./shells.ts";
+import { COSTUME_NAMES, COSTUMES, costumeValue, type CostumeName } from "./costumes.ts";
 import {
   FogIcon,
   FollowIcon,
@@ -77,6 +78,7 @@ type CommandMenuProps = {
   expression: ExpressionName;
   background: BackgroundName;
   shell: ShellName;
+  costume: CostumeName | null;
   theme: Theme;
   sound: boolean;
   leds: boolean;
@@ -85,6 +87,7 @@ type CommandMenuProps = {
   onExpression: (name: ExpressionName) => void;
   onBackground: (name: BackgroundName) => void;
   onShell: (name: ShellName) => void;
+  onCostume: (name: CostumeName | null) => void;
   onToggleTheme: () => void;
   onToggleSound: () => void;
   onToggleLeds: () => void;
@@ -96,6 +99,7 @@ function MenuBody({
   expression,
   background,
   shell,
+  costume,
   theme,
   sound,
   leds,
@@ -104,6 +108,7 @@ function MenuBody({
   onExpression,
   onBackground,
   onShell,
+  onCostume,
   onToggleTheme,
   onToggleSound,
   onToggleLeds,
@@ -153,6 +158,24 @@ function MenuBody({
               <span className="swatch" style={{ background: SHELLS[name].swatch }} />
               <span className="label">{SHELLS[name].label}</span>
               {name === shell && <CurrentMark />}
+            </Command.Item>
+          ))}
+        </Command.Group>
+
+        <Command.Group heading="Costumes">
+          {[null, ...COSTUME_NAMES].map((name) => (
+            <Command.Item
+              key={name ?? "none"}
+              value={costumeValue(name)}
+              keywords={[name ? COSTUMES[name].label : "none", "costume", "halloween", "dress up"]}
+              onSelect={() => onCostume(name)}
+            >
+              <span
+                className="swatch"
+                style={{ background: name ? COSTUMES[name].shell : SHELLS[shell].swatch }}
+              />
+              <span className="label">{name ? COSTUMES[name].label : "No costume"}</span>
+              {name === costume && <CurrentMark />}
             </Command.Item>
           ))}
         </Command.Group>

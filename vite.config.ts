@@ -8,7 +8,14 @@ export default defineConfig({
   },
   fmt: {
     sortPackageJson: true,
-    ignorePatterns: ["dist/**", "node_modules/**", "public/anatomy/**", "figures/anatomy/kit/**"],
+    ignorePatterns: [
+      "dist/**",
+      "node_modules/**",
+      "public/anatomy/**",
+      "figures/anatomy/kit/**",
+      // Generated costume meshes.
+      "src/costumes/*.json",
+    ],
   },
   lint: {
     ignorePatterns: ["dist/**", "node_modules/**", "public/anatomy/**", "figures/anatomy/kit/**"],
