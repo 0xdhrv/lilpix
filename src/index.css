@@ -120,6 +120,62 @@ kbd {
   outline-offset: 2px;
 }
 
+/* Costume name, shown briefly after ←/→ */
+
+.costume-label {
+  position: fixed;
+  top: max(20px, env(safe-area-inset-top));
+  left: 50%;
+  translate: -50% 0;
+  margin: 0;
+  pointer-events: none;
+}
+
+.costume-label span {
+  display: block;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  color: var(--fg);
+  font-size: 13px;
+  white-space: nowrap;
+  animation: costume-label 1400ms ease-out both;
+}
+
+@keyframes costume-label {
+  from {
+    opacity: 0;
+    translate: 0 -4px;
+  }
+  12%,
+  80% {
+    opacity: 1;
+    translate: 0 0;
+  }
+  to {
+    opacity: 0;
+    translate: 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .costume-label span {
+    animation-name: costume-label-fade;
+  }
+
+  @keyframes costume-label-fade {
+    from,
+    to {
+      opacity: 0;
+    }
+    12%,
+    80% {
+      opacity: 1;
+    }
+  }
+}
+
 /* Mobile-only trigger */
 
 .menu-trigger {

@@ -15,6 +15,11 @@ import {
 import { eyeGrids, ledsFor, type ExpressionName, type Leds } from "./expressions.ts";
 import { tilt } from "./tilt.ts";
 import { SHELLS, type ShellName } from "./shells.ts";
+import { costumeLook, isUpsideDown, type CostumeName } from "./costumes.ts";
+import type { Theme } from "./backgrounds.ts";
+import { Costume } from "./Costume.tsx";
+import { fireLight } from "./fire-light.ts";
+import { restPose, SY } from "./costume-rig.ts";
 
 // Geometry traced from the source SVG: 1 unit = 10 SVG px, origin at the
 // body's center (1819.5, 736), SVG y flipped to point up.
@@ -167,7 +172,7 @@ function ledLevel({ mode, speed }: Leds, t: number, i: number) {
   }
 }
 
-function Leds({ leds, on }: { leds: Leds; on: boolean }) {
+function Leds({ leds, on, base }: { leds: Leds; on: boolean; base: string }) {
   const lenses = useRef<(MeshStandardMaterial | null)[]>([]);
   // What the lenses currently show, so a static or dark LED costs nothing per frame.
   const applied = useRef<{ leds: Leds; on: boolean } | null>(null);
@@ -207,7 +212,7 @@ function Leds({ leds, on }: { leds: Leds; on: boolean }) {
             ref={(m) => {
               lenses.current[i] = m;
             }}
-            color={INK}
+            color={base}
             toneMapped={false}
             fog={false}
           />
@@ -220,6 +225,9 @@ function Leds({ leds, on }: { leds: Leds; on: boolean }) {
 type BotProps = {
   expression: ExpressionName;
   shell: ShellName;
+  /** Halloween costume; it brings its own shell, screen and eye colors. */
+  costume: CostumeName | null;
+  theme: Theme;
   /** LEDs stay dark until switched on. */
   leds: boolean;
   /** Look toward the pointer (or the phone's tilt). Off eases back to center. */
@@ -227,12 +235,17 @@ type BotProps = {
   onClick?: () => void;
 };
 
-export function Bot({ expression, shell, leds, follow, onClick }: BotProps) {
-  const BODY = SHELLS[shell].body;
+export function Bot({ expression, shell, costume, theme, leds, follow, onClick }: BotProps) {
+  const colors = costume ? costumeLook(costume, theme) : null;
+  const BODY = colors?.shell ?? SHELLS[shell].body;
+  const EYE_COLOR = colors?.eyes ?? EYE;
   const body = useRef<Group>(null);
   const eyes = useRef<Group>(null);
   // Smoothed look direction, before snapping.
   const look = useRef({ x: 0, y: 0 });
+  // Smoothed body turn, kept apart from the costume's head motion added on top.
+  const turn = useRef({ x: 0, y: 0 });
+  const pose = useRef(restPose());
   const [left, right] = eyeGrids(expression);
 
   // Squash the eyes shut on every expression change, then let them pop open.
@@ -243,6 +256,10 @@ export function Bot({ expression, shell, leds, follow, onClick }: BotProps) {
   useLayoutEffect(() => {
     shellMaterial.color.set(BODY);
   }, [BODY]);
+
+  useLayoutEffect(() => {
+    pixelMaterial.color.set(EYE_COLOR).multiplyScalar(1.25);
+  }, [EYE_COLOR]);
 
   useFrame(({ clock, pointer }, delta) => {
     // Clamp long frames (tab switches) so damping never jumps.
@@ -262,13 +279,22 @@ export function Bot({ expression, shell, leds, follow, onClick }: BotProps) {
     look.current.y = MathUtils.damp(look.current.y, target.y, 8, delta);
     eyes.current.position.x = look.current.x * LOOK_X;
     eyes.current.position.y = EYES_Y + look.current.y * LOOK_Y;
-    body.current.rotation.y = MathUtils.damp(body.current.rotation.y, target.x * TURN_Y, 3, delta);
-    body.current.rotation.x = MathUtils.damp(body.current.rotation.x, -target.y * TURN_X, 3, delta);
+    turn.current.y = MathUtils.damp(turn.current.y, target.x * TURN_Y, 3, delta);
+    turn.current.x = MathUtils.damp(turn.current.x, -target.y * TURN_X, 3, delta);
+    // Costume poses are in the logo's axes: y and z point the other way.
+    const { pitch, yaw, roll, lift } = pose.current;
+    body.current.rotation.set(
+      turn.current.x + pitch,
+      turn.current.y - yaw,
+      (isUpsideDown(costume) ? Math.PI : 0) - roll,
+    );
+    body.current.position.y = -lift * SY;
   });
 
   return (
     <group
       ref={body}
+      rotation-z={isUpsideDown(costume) ? Math.PI : 0}
       onClick={(e) => {
         e.stopPropagation();
         onClick?.();
@@ -310,7 +336,7 @@ export function Bot({ expression, shell, leds, follow, onClick }: BotProps) {
         <boxGeometry args={[14.2, 9.8, 0.1]} />
         {/* Unfogged, so the face keeps full contrast against the eyes. */}
         <meshPhysicalMaterial
-          color={INK}
+          color={colors?.screen ?? INK}
           roughness={0.15}
           clearcoat={1}
           clearcoatRoughness={0.1}
@@ -324,7 +350,16 @@ export function Bot({ expression, shell, leds, follow, onClick }: BotProps) {
       </group>
 
       {/* RGB LEDs in the top slots */}
-      <Leds leds={ledsFor(expression)} on={leds} />
+      <Leds leds={ledsFor(expression)} on={leds} base={colors?.leds ?? INK} />
+
+      <primitive object={fireLight} />
+
+      {costume && (
+        // Costumes are modeled the right way up, even on a bot hanging upside down.
+        <group rotation-z={isUpsideDown(costume) ? Math.PI : 0}>
+          <Costume name={costume} pose={pose} />
+        </group>
+      )}
     </group>
   );
 }
