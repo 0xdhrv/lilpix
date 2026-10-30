@@ -278,14 +278,12 @@ export function CommandMenu(props: CommandMenuProps) {
   const { open, onOpenChange, touch, highlighted, onHighlight } = props;
 
   return (
-    <Drawer.Root open={open} onOpenChange={onOpenChange}>
+    // cmdk only hears keys from inside the menu, so focus has to land on the search
+    // field. On touch, keep the on-screen keyboard closed until the user taps it.
+    <Drawer.Root open={open} onOpenChange={onOpenChange} autoFocus={!touch}>
       <Drawer.Portal>
         <Drawer.Overlay className="drawer-overlay" />
-        <Drawer.Content
-          className="drawer-content"
-          // Keep the on-screen keyboard closed until the user taps the search field.
-          onOpenAutoFocus={touch ? (e) => e.preventDefault() : undefined}
-        >
+        <Drawer.Content className="drawer-content">
           <Drawer.Handle className="drawer-handle" />
           <Drawer.Title className="sr-only">Command menu</Drawer.Title>
           <Command label="Command menu" value={highlighted} onValueChange={onHighlight} loop>

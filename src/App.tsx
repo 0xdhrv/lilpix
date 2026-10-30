@@ -118,6 +118,7 @@ export default function App() {
   const [highlighted, setHighlighted] = useState<string | null>(null);
   // Touch devices get the drawer and a visible trigger at any width; ⌘K needs a keyboard.
   const mobile = useMediaQuery("(max-width: 640px), (pointer: coarse)");
+  const coarse = useMediaQuery("(pointer: coarse)");
   const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
 
   const previewExpression = highlighted && isExpression(highlighted) ? highlighted : null;
@@ -340,7 +341,7 @@ export default function App() {
       <CommandMenu
         open={menuOpen}
         onOpenChange={setOpen}
-        touch={mobile}
+        touch={coarse}
         highlighted={highlighted ?? expression}
         onHighlight={setHighlighted}
         expression={expression}
