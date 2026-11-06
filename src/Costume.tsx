@@ -161,6 +161,27 @@ function build(data: CostumeData) {
   return { parts, sprites, flames };
 }
 
+const RELOADED_AT = "lilpix:reloaded-at";
+
+/**
+ * A costume's chunk failed to load, most often in a tab left open across a
+ * deploy, whose old chunks are gone. Browsers remember a failed import, so
+ * asking again can't help: reload to pick up the current build. The costume is
+ * already saved, so the bot comes back wearing it. At most once a minute, so
+ * an offline page doesn't reload forever.
+ */
+function reloadAfterFailedLoad(error: unknown) {
+  console.error("Couldn't load the costume", error);
+  try {
+    if (Date.now() - Number(sessionStorage.getItem(RELOADED_AT)) < 60_000) return;
+    sessionStorage.setItem(RELOADED_AT, String(Date.now()));
+  } catch {
+    // Storage blocked: no way to tell a reload loop apart, so don't risk one.
+    return;
+  }
+  location.reload();
+}
+
 /**
  * The costume meshes for the bot, loaded on first use. `pose` receives the
  * costume's head motion for the bot to apply.
@@ -172,10 +193,10 @@ export function Costume({ name, pose }: { name: CostumeName; pose: RefObject<Pos
 
   useEffect(() => {
     if (loaded.has(name)) return;
-    void loader(name)().then((data) => {
+    loader(name)().then((data) => {
       loaded.set(name, data);
       setLoads((n) => n + 1);
-    });
+    }, reloadAfterFailedLoad);
   }, [name]);
 
   const built = useMemo(
