@@ -1,8 +1,9 @@
 import type { Theme } from "./backgrounds.ts";
 
-// Halloween costumes from Vercel's Lil Pix nav logo, which morphs into these
-// heads on hover. Each costume recolors the bot and adds a mesh, stored in
-// src/costumes/<name>.json in bot units (see Costume.tsx).
+// Each costume recolors the bot and adds a mesh from src/costumes/<name>: the
+// Halloween ones are traced from Vercel's Lil Pix nav logo, which morphs into
+// these heads on hover, and stored as JSON in bot units (see Costume.tsx); the
+// Diwali ones, one per day of the festival, are modeled in code.
 type Look = {
   /** Shell (body and ears). */
   shell: string;
@@ -17,9 +18,63 @@ type CostumeDef = Look & {
   light?: Partial<Look>;
   /** Hangs upside down, like a bat from a branch. */
   upsideDown?: boolean;
+  /** Other names to search by. */
+  aliases?: string[];
 };
 
-export const COSTUMES = {
+// In festival order, named as in Gujarat.
+const DIWALI = {
+  "vagh-baras": {
+    label: "Vagh Baras",
+    aliases: ["vasu baras", "govatsa dwadashi", "cow", "calf"],
+    shell: "#f1ebe0",
+    leds: "#8f7a62",
+    screen: "#221a12",
+    light: { shell: "#e4dccd" },
+  },
+  dhanteras: {
+    label: "Dhanteras",
+    aliases: ["dhantrayodashi", "dhan teras", "gold", "kalash", "coins"],
+    shell: "#1f6b56",
+    leds: "#0b2d23",
+    screen: "#06140f",
+    eyes: "#fff1c4",
+  },
+  "kali-chaudas": {
+    label: "Kali Chaudas",
+    aliases: ["narak chaturdashi", "kali chaudashi", "nimbu mirchi", "chhoti diwali"],
+    shell: "#2b2638",
+    leds: "#100e16",
+    screen: "#0c0a12",
+    eyes: "#ff6a3d",
+    light: { shell: "#433c56" },
+  },
+  diwali: {
+    label: "Diwali",
+    aliases: ["deepavali", "lakshmi puja", "diya", "lights"],
+    shell: "#9b2335",
+    leds: "#45101a",
+    screen: "#1c060b",
+    eyes: "#ffd877",
+  },
+  "bestu-varas": {
+    label: "Bestu Varas",
+    aliases: ["new year", "nutan varsh", "saal mubarak", "fireworks", "toran"],
+    shell: "#2f3170",
+    leds: "#15163a",
+    screen: "#0b0b1f",
+    light: { shell: "#3d4090" },
+  },
+  "bhai-bij": {
+    label: "Bhai Bij",
+    aliases: ["bhai dooj", "bhaiya dooj", "bhau beej", "tilak", "safa", "turban"],
+    shell: "#3a5bab",
+    leds: "#172752",
+    screen: "#0b1328",
+  },
+} satisfies Record<string, CostumeDef>;
+
+const HALLOWEEN = {
   frank: {
     label: "Frank",
     shell: "#60a43c",
@@ -136,12 +191,20 @@ export const COSTUMES = {
   },
 } satisfies Record<string, CostumeDef>;
 
+export const COSTUMES = { ...DIWALI, ...HALLOWEEN };
+
 export type CostumeName = keyof typeof COSTUMES;
 
 export const COSTUME_NAMES = Object.keys(COSTUMES) as CostumeName[];
 
 /** cmdk item value for a costume; null is "No costume". */
 export const costumeValue = (name: CostumeName | null) => `costume-${name ?? "none"}`;
+
+/** Words the command menu finds a costume by. */
+export function costumeKeywords(name: CostumeName) {
+  const costume: CostumeDef = COSTUMES[name];
+  return [costume.label, ...(costume.aliases ?? []), name in DIWALI ? "diwali" : "halloween"];
+}
 
 export function costumeLook(name: CostumeName, theme: Theme): Look {
   const costume: CostumeDef = COSTUMES[name];

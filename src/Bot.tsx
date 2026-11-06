@@ -225,7 +225,7 @@ function Leds({ leds, on, base }: { leds: Leds; on: boolean; base: string }) {
 type BotProps = {
   expression: ExpressionName;
   shell: ShellName;
-  /** Halloween costume; it brings its own shell, screen and eye colors. */
+  /** Costume; it brings its own shell, screen and eye colors. */
   costume: CostumeName | null;
   theme: Theme;
   /** LEDs stay dark until switched on. */

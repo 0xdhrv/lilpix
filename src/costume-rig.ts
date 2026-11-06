@@ -164,15 +164,7 @@ export class Rig {
     const part = this.parts.get(name);
     const geometry = part && this.geometries(part)[0];
     if (!geometry) return;
-    const out: number[] = [];
-    for (const polygon of polygons) {
-      for (const [a, b, c] of triangulate(polygon)) {
-        for (const p of [polygon[a], polygon[b], polygon[c]]) {
-          const q = toLocal(p, part.info, this.q);
-          out.push(q.x, q.y, q.z);
-        }
-      }
-    }
+    const out = positions(polygons, part.info);
     const position = geometry.getAttribute("position") as BufferAttribute | undefined;
     if (position && position.array.length === out.length) {
       (position.array as Float32Array).set(out);
@@ -189,6 +181,28 @@ export class Rig {
     return [...new Set(meshes(part).map((m) => m.geometry))];
   }
 }
+
+/** Triangles for these polygons, in logo coordinates, as positions local to the part. */
+export function positions(polygons: Vec[][], info: PartInfo) {
+  const out: number[] = [];
+  const q: Vec = { x: 0, y: 0, z: 0 };
+  for (const polygon of polygons) {
+    for (const [a, b, c] of triangulate(polygon)) {
+      for (const p of [polygon[a], polygon[b], polygon[c]]) {
+        toLocal(p, info, q);
+        out.push(q.x, q.y, q.z);
+      }
+    }
+  }
+  return out;
+}
+
+/** Where a logo point sits on the bot, in bot units. */
+export const toBot = ([x, y, z]: [number, number, number]): [number, number, number] => [
+  x * SX,
+  -y * SY,
+  toBotZ(z),
+];
 
 const meshes = (part: RigPart) =>
   (part.group?.children.filter((c) => (c as Mesh).isMesh) ?? []) as Mesh[];

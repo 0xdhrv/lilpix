@@ -24,6 +24,7 @@ import { Intro } from "./Intro.tsx";
 import { SceneFog } from "./SceneFog.tsx";
 import { CommandMenu } from "./CommandMenu.tsx";
 import { EXPRESSION_NAMES, type ExpressionName } from "./expressions.ts";
+import { festivalCostume } from "./festival.ts";
 import { usePersistent, useMediaQuery } from "./hooks.ts";
 import {
   CommandIcon,
@@ -129,6 +130,12 @@ export default function App() {
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
+
+  // Dress up for the day on festival days.
+  useEffect(() => {
+    const name = festivalCostume();
+    if (name) setCostume(name);
+  }, [setCostume]);
 
   // Phones look around with the gyroscope. iOS only allows asking for sensor
   // access from a user gesture, so wait for the first tap there.

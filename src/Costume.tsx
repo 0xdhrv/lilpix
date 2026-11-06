@@ -20,40 +20,15 @@ import { SVGLoader } from "three/examples/jsm/loaders/SVGLoader.js";
 import type { CostumeName } from "./costumes.ts";
 import { growIn, MOTIONS } from "./costume-motion.ts";
 import { Flame, type FlameKind } from "./Flame.tsx";
-import { Rig, restPose, type PartInfo, type Pose } from "./costume-rig.ts";
+import { Rig, restPose, type Pose } from "./costume-rig.ts";
+import type { CostumeData } from "./costume-shapes.ts";
 
-type Group = {
-  /** Moving part this belongs to; its positions are relative to the part's pivot. */
-  part?: string;
-  color: string;
-  back?: string;
-  opacity?: number;
-  positions: number[];
-};
-/**
- * A flat 2D shape (flames, sprouts, antenna tips): an SVG path in the logo's
- * units, drawn around its anchor or, if absolute, in head coordinates.
- */
-type Sprite = {
-  path: string;
-  color: string;
-  opacity?: number;
-  at: [number, number, number];
-  /** For paths drawn in head coordinates: moves them around the anchor. */
-  shift?: [number, number];
-  part?: string;
-};
-type CostumeData = {
-  /** Moving parts by name. */
-  parts?: Record<string, PartInfo>;
-  groups: Group[];
-  sprites: Sprite[];
-  threads?: [number, number, number][];
-};
-
-const loaders = import.meta.glob<CostumeData>("./costumes/*.json", {
+// Traced costumes are JSON meshes; modeled ones are modules that build theirs.
+const loaders = import.meta.glob<CostumeData>(["./costumes/*.json", "./costumes/*.ts"], {
   import: "default",
 });
+const loader = (name: CostumeName) =>
+  loaders[`./costumes/${name}.json`] ?? loaders[`./costumes/${name}.ts`];
 const loaded = new Map<CostumeName, CostumeData>();
 
 // The logo draws sprites mirrored, with y pointing down, at 44 units to an ear.
@@ -76,14 +51,15 @@ const noRaycast = () => null;
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const svgLoader = new SVGLoader();
 
-// Fire and glowing parts: unlit and pushed past the bloom threshold, like the eyes.
-const GLOWING = new Set(["glow", "embers"]);
+// Fire and glowing parts (embers, and any part named glow…): unlit and pushed
+// past the bloom threshold, like the eyes.
+const glowing = (part: string) => part === "embers" || part.startsWith("glow");
 // Parts whose sprites only outline a fire; a live flame fills the outline instead.
 const FLAMES: Record<string, FlameKind> = { flame: "candle", fire: "campfire" };
 const GLOW_GAIN = 1.6;
 
 function material(color: string, opacity = 1, side: Side = DoubleSide, part?: string) {
-  if (part && GLOWING.has(part)) {
+  if (part && glowing(part)) {
     const glow = new MeshBasicMaterial({
       color,
       side,
@@ -116,7 +92,12 @@ function material(color: string, opacity = 1, side: Side = DoubleSide, part?: st
 type Part = { geometry: BufferGeometry; material: Material; part?: string };
 /** Sprites turn about their anchor to face the camera, like the logo's billboards. */
 type SpritePart = Part & { at: [number, number, number] };
-type FlamePart = { part: string; kind: FlameKind; at: [number, number, number]; box: Box3 };
+type FlamePart = {
+  part: string;
+  kind: FlameKind;
+  at: [number, number, number];
+  box: Box3;
+};
 
 function build(data: CostumeData) {
   const parts: Part[] = [];
@@ -160,7 +141,13 @@ function build(data: CostumeData) {
       geometry.computeBoundingBox();
       const flame = flames.find((f) => f.part === sprite.part);
       if (flame) flame.box.union(geometry.boundingBox!);
-      else flames.push({ part: sprite.part!, kind, at: sprite.at, box: geometry.boundingBox! });
+      else
+        flames.push({
+          part: sprite.part!,
+          kind,
+          at: sprite.at,
+          box: geometry.boundingBox!,
+        });
       geometry.dispose();
       continue;
     }
@@ -185,7 +172,7 @@ export function Costume({ name, pose }: { name: CostumeName; pose: RefObject<Pos
 
   useEffect(() => {
     if (loaded.has(name)) return;
-    void loaders[`./costumes/${name}.json`]().then((data) => {
+    void loader(name)().then((data) => {
       loaded.set(name, data);
       setLoads((n) => n + 1);
     });

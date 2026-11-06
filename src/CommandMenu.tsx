@@ -11,7 +11,13 @@ import {
   type Theme,
 } from "./backgrounds.ts";
 import { SHELL_NAMES, SHELLS, shellValue, type ShellName } from "./shells.ts";
-import { COSTUME_NAMES, COSTUMES, costumeValue, type CostumeName } from "./costumes.ts";
+import {
+  COSTUME_NAMES,
+  COSTUMES,
+  costumeKeywords,
+  costumeValue,
+  type CostumeName,
+} from "./costumes.ts";
 import {
   FogIcon,
   FollowIcon,
@@ -167,7 +173,7 @@ function MenuBody({
             <Command.Item
               key={name ?? "none"}
               value={costumeValue(name)}
-              keywords={[name ? COSTUMES[name].label : "none", "costume", "halloween", "dress up"]}
+              keywords={[...(name ? costumeKeywords(name) : ["none"]), "costume", "dress up"]}
               onSelect={() => onCostume(name)}
             >
               <span

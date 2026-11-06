@@ -1,5 +1,6 @@
 import type { CostumeName } from "./costumes.ts";
 import type { Pose, Rig, Vec } from "./costume-rig.ts";
+import { ball, disc, tube, vec } from "./costume-shapes.ts";
 
 // Idle motion for the costumes, after Vercel's Lil Pix logo. Times are in
 // milliseconds since the costume went on; positions and angles are in the
@@ -109,70 +110,6 @@ function spring(
   s[`${key}.v`] = velocity;
   s[`${key}.t`] = t;
   return value;
-}
-
-const vec = (x: number, y: number, z: number): Vec => ({ x, y, z });
-
-/** A tube of `sides` around a polyline, as quads. */
-function tube(points: Vec[], radii: number[], sides = 6) {
-  const rings = points.map((p, i) => {
-    const a = points[Math.max(0, i - 1)];
-    const b = points[Math.min(points.length - 1, i + 1)];
-    let tx = b.x - a.x;
-    let ty = b.y - a.y;
-    let tz = b.z - a.z;
-    const tl = Math.hypot(tx, ty, tz) || 1;
-    tx /= tl;
-    ty /= tl;
-    tz /= tl;
-    // A side vector off the tangent, then the third axis.
-    let ux = -ty;
-    let uy = tx;
-    let uz = 0;
-    if (Math.hypot(ux, uy) < 0.1) [ux, uy, uz] = [0, -tz, ty];
-    const ul = Math.hypot(ux, uy, uz) || 1;
-    ux /= ul;
-    uy /= ul;
-    uz /= ul;
-    const vx = ty * uz - tz * uy;
-    const vy = tz * ux - tx * uz;
-    const vz = tx * uy - ty * ux;
-    return Array.from({ length: sides }, (_, k) => {
-      const c = Math.cos((k / sides) * TAU) * radii[i];
-      const s = Math.sin((k / sides) * TAU) * radii[i];
-      return vec(p.x + ux * c + vx * s, p.y + uy * c + vy * s, p.z + uz * c + vz * s);
-    });
-  });
-  const quads: Vec[][] = [];
-  for (let i = 0; i < rings.length - 1; i++) {
-    for (let k = 0; k < sides; k++) {
-      const n = (k + 1) % sides;
-      quads.push([rings[i][k], rings[i][n], rings[i + 1][n], rings[i + 1][k]]);
-    }
-  }
-  return quads;
-}
-
-/** A low-poly ball, squashed by `sy` on the y axis. */
-function ball(c: Vec, r: number, sy = 1, rows = 5, sides = 8) {
-  const faces: Vec[][] = [];
-  const at = (i: number, k: number) => {
-    const a = (i / rows) * Math.PI;
-    const b = (k / sides) * TAU;
-    return vec(
-      c.x + r * Math.sin(a) * Math.cos(b),
-      c.y - r * sy * Math.cos(a),
-      c.z + r * Math.sin(a) * Math.sin(b),
-    );
-  };
-  for (let i = 0; i < rows; i++) {
-    for (let k = 0; k < sides; k++) {
-      const quad = [at(i, k), at(i, k + 1), at(i + 1, k + 1), at(i + 1, k)];
-      // Collapse the zero-area edges at the poles to triangles.
-      faces.push(i === 0 ? [quad[0], quad[2], quad[3]] : i === rows - 1 ? quad.slice(0, 3) : quad);
-    }
-  }
-  return faces;
 }
 
 /** Scale of a costume just put on: eases in from nothing. */
@@ -507,10 +444,60 @@ const FIZZ = [
   [37.6, 1.4, 3100, 2100],
 ];
 
-function disc(c: Vec, r: number, sides = 8) {
-  return Array.from({ length: sides }, (_, k) =>
-    vec(c.x + r * Math.cos((k / sides) * TAU), c.y + r * Math.sin((k / sides) * TAU), c.z),
-  );
+// Diwali lights, as [part, r, g, b]: each color twinkles in turn.
+const BULBS = [
+  ["glowA", 255, 194, 58],
+  ["glowB", 255, 79, 134],
+  ["glowC", 83, 224, 122],
+  ["glowD", 79, 168, 255],
+] as const;
+
+// Bestu Varas fireworks: where each bursts, and how far into the show it first goes up.
+const SHOW = 2700;
+const BURSTS = [
+  { x: -30, y: -68, z: 6, at: 0 },
+  { x: 30, y: -62, z: -4, at: 900 },
+  { x: 0, y: -76, z: 8, at: 1800 },
+];
+const SHELLS = ["glowA", "glowB", "glowC"];
+// Directions the sparks fly, spread evenly over a sphere.
+const SPARKS = Array.from({ length: 18 }, (_, i) => {
+  const y = 1 - (2 * (i + 0.5)) / 18;
+  const r = Math.sqrt(1 - y * y);
+  const a = i * 2.39996;
+  return vec(r * Math.cos(a), y, r * Math.sin(a));
+});
+
+/** Sparks of every burst this frame, by shell color. */
+function fireworks(t: number) {
+  const shells: Vec[][][] = SHELLS.map(() => []);
+  BURSTS.forEach((b, i) => {
+    const local = t - 600 - b.at;
+    if (local < 0) return;
+    const k = Math.floor(local / SHOW);
+    const m = local - k * SHOW;
+    const x = b.x + (hash(7 * k + i) - 0.5) * 12;
+    const y = b.y + (hash(13 * k + i + 3) - 0.5) * 6;
+    if (m < 520) {
+      // The rocket climbs off the head, a short trail behind it.
+      for (let j = 0; j < 4; j++) {
+        const f = ease.out(clamp01(m / 520 - 0.07 * j));
+        const p = vec(lerp(0.3 * x, x, f), lerp(-44, y, f), b.z);
+        shells[0].push(...ball(p, 1.3 - 0.25 * j, 1, 2, 4));
+      }
+    } else if (m < 1800) {
+      const f = (m - 520) / 1280;
+      const spread = 19 * ease.out(f);
+      const fall = 9 * f * f;
+      const r = 1.8 * (1 - f) ** 0.6;
+      const shell = shells[(k + i) % SHELLS.length];
+      for (const d of SPARKS) {
+        const p = vec(x + d.x * spread, y + d.y * spread + fall, b.z + d.z * spread);
+        shell.push(...ball(p, r, 1, 2, 4));
+      }
+    }
+  });
+  return shells;
 }
 
 export const MOTIONS: Partial<Record<CostumeName, Motion>> = {
@@ -860,5 +847,61 @@ export const MOTIONS: Partial<Record<CostumeName, Motion>> = {
       rig.polygons(e === 0 ? "stalkL" : "stalkR", tube(stalk, radii));
       rig.polygons(e === 0 ? "tipL" : "tipR", ball(stalk[stalk.length - 1], 7.5));
     }
+  },
+
+  // Diwali, a day at a time.
+
+  // The calf flicks its ears, and its bell swings as it sways.
+  "vagh-baras": (t, rig) => {
+    for (const [part, s, delay] of [
+      ["earL", -1, 1200],
+      ["earR", 1, 2300],
+    ] as const) {
+      rig.turn(part, 0, 0, -0.4 * s * pulse(t, 4200, delay, 120, 60, 380, 0.4));
+    }
+    const roll = 0.025 * wave(t, 3400);
+    rig.turn("bell", 0, 0, spring(rig, "bell", t, -6 * roll, 380, 0.12));
+    return { roll, pitch: 0.02 * wave(t, 1700), lift: 0.6 * wave(t, 3400, 0.25) };
+  },
+
+  // The coins circle the kalash, bobbing.
+  dhanteras: (t, rig) => {
+    rig.turn("coins", 0, t / 2600, 0);
+    rig.shift("coins", 0, 1.5 * wave(t, 2600));
+    return { lift: 0.6 * wave(t, 3000), roll: 0.02 * wave(t, 4400) };
+  },
+
+  // The nimbu-mirchi swing from the ears, against the head's sway.
+  "kali-chaudas": (t, rig) => {
+    const roll = 0.03 * wave(t, 4200);
+    for (const [part, phase] of [
+      ["charmL", 0],
+      ["charmR", 0.35],
+    ] as const) {
+      rig.turn(part, 0.06 * wave(t, 2600, phase), 0, 0.1 * wave(t, 2100, phase) - 2 * roll);
+    }
+    return { roll, yaw: 0.06 * wave(t, 6100) };
+  },
+
+  // The lights twinkle and the diya's flame stretches as it burns.
+  diwali: (t, rig) => {
+    BULBS.forEach(([part, r, g, b], i) => {
+      const k = 0.4 + 1.4 * smooth(0.5 + 0.6 * wave(t, 2400, -i / 4));
+      rig.color(part, r * k, g * k, b * k);
+    });
+    const stretch = 0.06 * noise(t / 240, 2) + 0.04 * noise(t / 90, 5);
+    rig.scale("flame", 1 - 0.5 * stretch, 1 + stretch, 1);
+    return { lift: -0.6 * wave(t, 3600) };
+  },
+
+  "bestu-varas": (t, rig) => {
+    fireworks(t).forEach((sparks, i) => rig.polygons(SHELLS[i], sparks));
+    return { lift: 0.5 * wave(t, 3000), roll: 0.015 * wave(t, 4600) };
+  },
+
+  // The plume on the safa sways.
+  "bhai-bij": (t, rig) => {
+    rig.turn("kalgi", 0.08 * wave(t, 2300), 0, 0.1 * wave(t, 3100, 0.2));
+    return { lift: 0.5 * wave(t, 3100), roll: 0.015 * wave(t, 5200) };
   },
 };
