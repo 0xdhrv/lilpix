@@ -46,7 +46,6 @@ const LOOK_Y = 0.75;
 const TURN_Y = 0.3;
 const TURN_X = 0.18;
 const CENTER = { x: 0, y: 0 };
-const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 // Every lit eye pixel is one instance of a single mesh: one draw call for the
 // whole face, however many pixels an expression uses.
@@ -232,10 +231,21 @@ type BotProps = {
   leds: boolean;
   /** Look toward the pointer (or the phone's tilt). Off eases back to center. */
   follow: boolean;
+  /** Hold still: no looking around, and costumes don't move. */
+  reducedMotion: boolean;
   onClick?: () => void;
 };
 
-export function Bot({ expression, shell, costume, theme, leds, follow, onClick }: BotProps) {
+export function Bot({
+  expression,
+  shell,
+  costume,
+  theme,
+  leds,
+  follow,
+  reducedMotion,
+  onClick,
+}: BotProps) {
   const colors = costume ? costumeLook(costume, theme) : null;
   const BODY = colors?.shell ?? SHELLS[shell].body;
   const EYE_COLOR = colors?.eyes ?? EYE;
@@ -357,7 +367,7 @@ export function Bot({ expression, shell, costume, theme, leds, follow, onClick }
       {costume && (
         // Costumes are modeled the right way up, even on a bot hanging upside down.
         <group rotation-z={isUpsideDown(costume) ? Math.PI : 0}>
-          <Costume name={costume} pose={pose} />
+          <Costume name={costume} pose={pose} reducedMotion={reducedMotion} />
         </group>
       )}
     </group>

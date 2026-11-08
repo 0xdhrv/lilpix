@@ -17,18 +17,12 @@ import {
   type Side,
 } from "three";
 import { SVGLoader } from "three/examples/jsm/loaders/SVGLoader.js";
-import type { CostumeName } from "./costumes.ts";
+import { costumeLoader, type CostumeName } from "./costumes.ts";
 import { growIn, MOTIONS } from "./costume-motion.ts";
 import { Flame, type FlameKind } from "./Flame.tsx";
 import { Rig, restPose, type Pose } from "./costume-rig.ts";
 import type { CostumeData } from "./costume-shapes.ts";
 
-// Traced costumes are JSON meshes; modeled ones are modules that build theirs.
-const loaders = import.meta.glob<CostumeData>(["./costumes/*.json", "./costumes/*.ts"], {
-  import: "default",
-});
-const loader = (name: CostumeName) =>
-  loaders[`./costumes/${name}.json`] ?? loaders[`./costumes/${name}.ts`];
 const loaded = new Map<CostumeName, CostumeData>();
 
 // The logo draws sprites mirrored, with y pointing down, at 44 units to an ear.
@@ -48,7 +42,6 @@ const threadMaterial = new MeshStandardMaterial({
 });
 
 const noRaycast = () => null;
-const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const svgLoader = new SVGLoader();
 
 // Fire and glowing parts (embers, and any part named glow…): unlit and pushed
@@ -186,14 +179,22 @@ function reloadAfterFailedLoad(error: unknown) {
  * The costume meshes for the bot, loaded on first use. `pose` receives the
  * costume's head motion for the bot to apply.
  */
-export function Costume({ name, pose }: { name: CostumeName; pose: RefObject<Pose> }) {
+export function Costume({
+  name,
+  pose,
+  reducedMotion,
+}: {
+  name: CostumeName;
+  pose: RefObject<Pose>;
+  reducedMotion: boolean;
+}) {
   const current = loaded.get(name);
   // Bumped when a costume finishes loading, to re-render with it.
   const [, setLoads] = useState(0);
 
   useEffect(() => {
     if (loaded.has(name)) return;
-    loader(name)().then((data) => {
+    costumeLoader(name)().then((data) => {
       loaded.set(name, data);
       setLoads((n) => n + 1);
     }, reloadAfterFailedLoad);
@@ -223,9 +224,19 @@ export function Costume({ name, pose }: { name: CostumeName; pose: RefObject<Pos
   useEffect(() => () => void Object.assign(pose.current, restPose()), [pose, rig]);
 
   const root = useRef<ThreeGroup>(null);
+  // The rig last posed still, for reduced motion.
+  const posed = useRef<Rig | null>(null);
 
   useFrame(({ clock }) => {
-    if (reducedMotion || !current) return;
+    if (!current) return;
+    if (reducedMotion) {
+      // Some parts (antennae, legs, a handle) only exist once their motion
+      // builds them: pose them once, as at t = 0, and hold still.
+      if (posed.current === rig) return;
+      posed.current = rig;
+      MOTIONS[name]?.(0, rig);
+      return;
+    }
     const t = rig.since(clock.elapsedTime);
     // Grows out of the head when put on.
     root.current?.scale.setScalar(Math.max(1e-3, growIn(t)));
@@ -258,7 +269,7 @@ export function Costume({ name, pose }: { name: CostumeName; pose: RefObject<Pos
         .filter((f) => f.part === part)
         .map((f, i) => (
           <group key={`flame-${i}`} position={f.at}>
-            <Flame kind={f.kind} box={f.box} seed={i} />
+            <Flame kind={f.kind} box={f.box} seed={i} reducedMotion={reducedMotion} />
           </group>
         ))}
     </>

@@ -20,8 +20,6 @@ const GAIN: Record<FlameKind, number> = { candle: 1.6, campfire: 1.2 };
 const at = new Vector3();
 const scale = new Vector3();
 
-const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
-
 const vertexShader = /* glsl */ `
   varying vec3 vPos;
   void main() {
@@ -189,7 +187,18 @@ const fragmentShader = /* glsl */ `
  * of rising, flickering fire raymarched inside a box. `box` is the outline,
  * base at the bottom; the flame is as deep as it is wide.
  */
-export function Flame({ kind, box, seed = 0 }: { kind: FlameKind; box: Box3; seed?: number }) {
+export function Flame({
+  kind,
+  box,
+  seed = 0,
+  reducedMotion,
+}: {
+  kind: FlameKind;
+  box: Box3;
+  seed?: number;
+  /** Hold the flame still and steady. */
+  reducedMotion: boolean;
+}) {
   const mesh = useRef<Mesh>(null);
 
   const { geometry, material, center } = useMemo(() => {

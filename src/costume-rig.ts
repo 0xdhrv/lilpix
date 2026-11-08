@@ -16,7 +16,7 @@ import {
 
 export type Vec = { x: number; y: number; z: number };
 
-export const SX = 8.85 / 44;
+const SX = 8.85 / 44;
 export const SY = 7.9 / 40;
 const SZ_IN = 6 / 40;
 const LIFT = 0.04;

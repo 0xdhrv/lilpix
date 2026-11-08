@@ -33,12 +33,25 @@ type PermissionRequest = { requestPermission?: () => Promise<"granted" | "denied
 export const tiltNeedsPermission = () =>
   typeof (DeviceOrientationEvent as unknown as PermissionRequest).requestPermission === "function";
 
-/** Start listening. On iOS, call from a user gesture so the permission prompt can show. */
+/**
+ * Start listening. On iOS, call from a user gesture so the permission prompt
+ * can show. Resolves false when there was no gesture to ask from, so asking
+ * again later may work; true once tilt is on or the user has said no.
+ */
 export async function enableTilt() {
-  if (listening || typeof DeviceOrientationEvent === "undefined") return;
+  if (listening || typeof DeviceOrientationEvent === "undefined") return true;
   const api = DeviceOrientationEvent as unknown as PermissionRequest;
-  // Called as a method: iOS rejects it when detached from DeviceOrientationEvent.
-  if (api.requestPermission && (await api.requestPermission()) !== "granted") return;
+  if (api.requestPermission) {
+    let state: "granted" | "denied";
+    try {
+      // Called as a method: iOS rejects it when detached from DeviceOrientationEvent.
+      state = await api.requestPermission();
+    } catch {
+      return false;
+    }
+    if (state !== "granted") return true;
+  }
+  if (!listening) window.addEventListener("deviceorientation", onOrientation);
   listening = true;
-  window.addEventListener("deviceorientation", onOrientation);
+  return true;
 }
