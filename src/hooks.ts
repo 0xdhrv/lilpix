@@ -1,9 +1,18 @@
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type SetStateAction,
+} from "react";
 
 /**
  * useState backed by localStorage. Falls back to `initial` when nothing is
  * stored, the stored JSON is broken, or `isValid` rejects it (say, a
- * background that has since been removed).
+ * background that has since been removed). Only values set through the
+ * returned setter are saved, so an unchosen default can change later.
  */
 export function usePersistent<T>(
   key: string,
@@ -23,24 +32,28 @@ export function usePersistent<T>(
     }
     return initial();
   });
+  // Set once the value has been chosen here, as opposed to loaded or synced.
+  const chosen = useRef(false);
 
   // Follow changes made in other tabs and pages (the about page, the anatomy
   // figure), so every open page shows the same theme and settings.
+  const onStorage = useEffectEvent((event: StorageEvent) => {
+    if (event.key !== key || event.newValue === null) return;
+    try {
+      const parsed: unknown = JSON.parse(event.newValue);
+      if (isValid(parsed)) setValue(parsed);
+    } catch {
+      // Ignore unreadable values.
+    }
+  });
   useEffect(() => {
-    const onStorage = (event: StorageEvent) => {
-      if (event.key !== key || event.newValue === null) return;
-      try {
-        const parsed: unknown = JSON.parse(event.newValue);
-        if (isValid(parsed)) setValue(parsed);
-      } catch {
-        // Ignore unreadable values.
-      }
-    };
-    addEventListener("storage", onStorage);
-    return () => removeEventListener("storage", onStorage);
-  }, [key, isValid]);
+    const listener = (event: StorageEvent) => onStorage(event);
+    addEventListener("storage", listener);
+    return () => removeEventListener("storage", listener);
+  }, []);
 
   useEffect(() => {
+    if (!chosen.current) return;
     try {
       localStorage.setItem(key, JSON.stringify(value));
     } catch {
@@ -48,7 +61,12 @@ export function usePersistent<T>(
     }
   }, [key, value]);
 
-  return [value, setValue] as const;
+  const choose = useCallback((next: SetStateAction<T>) => {
+    chosen.current = true;
+    setValue(next);
+  }, []);
+
+  return [value, choose] as const;
 }
 
 export function useMediaQuery(query: string) {

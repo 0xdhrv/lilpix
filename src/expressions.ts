@@ -1,7 +1,7 @@
 // Each eye is a pixel grid drawn on the screen: "#" lights a pixel.
 // `right` defaults to the mirror image of `left`.
 // `leds` drives the three RGB LEDs on top: one color per LED plus an animation.
-export type LedMode = "steady" | "breathe" | "blink" | "chase" | "rainbow";
+type LedMode = "steady" | "breathe" | "blink" | "chase" | "rainbow";
 export type Leds = { colors: [string, string, string]; mode: LedMode; speed: number };
 type Expression = { left: string[]; right?: string[]; leds: Leds };
 

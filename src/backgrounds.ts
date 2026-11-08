@@ -10,7 +10,7 @@ type Background = {
   dark: Palette;
 };
 
-export const BACKGROUNDS = {
+const BACKGROUNDS = {
   studio: {
     label: "Studio",
     kind: "solid",

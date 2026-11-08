@@ -64,28 +64,35 @@ function AdaptiveResolution() {
   );
 }
 
-const isExpression = (value: string): value is ExpressionName =>
-  EXPRESSION_NAMES.includes(value as ExpressionName);
+/** Type guard for one of `names`. */
+const oneOf =
+  <T extends string>(names: readonly T[]) =>
+  (value: unknown): value is T =>
+    (names as readonly unknown[]).includes(value);
 
-const isBackground = (value: unknown): value is BackgroundName =>
-  BACKGROUND_NAMES.includes(value as BackgroundName);
+/** The name in `names` whose cmdk item value is `value`, or null. */
+const fromValue = <T extends string>(
+  names: readonly T[],
+  toValue: (name: T) => string,
+  value: string,
+) => names.find((name) => toValue(name) === value) ?? null;
 
-const isShell = (value: unknown): value is ShellName => SHELL_NAMES.includes(value as ShellName);
-
-const shellFromValue = (value: string) =>
-  SHELL_NAMES.find((name) => shellValue(name) === value) ?? null;
+const isExpression = oneOf(EXPRESSION_NAMES);
+const isBackground = oneOf(BACKGROUND_NAMES);
+const isShell = oneOf(SHELL_NAMES);
+const isCostumeName = oneOf(COSTUME_NAMES);
 
 const isCostume = (value: unknown): value is CostumeName | null =>
-  value === null || COSTUME_NAMES.includes(value as CostumeName);
+  value === null || isCostumeName(value);
 
 // undefined when the value isn't a costume item; null is "No costume".
 const costumeFromValue = (value: string) =>
-  value === costumeValue(null) ? null : COSTUME_NAMES.find((name) => costumeValue(name) === value);
+  value === costumeValue(null)
+    ? null
+    : (fromValue(COSTUME_NAMES, costumeValue, value) ?? undefined);
 
-const isTheme = (value: unknown): value is Theme => value === "light" || value === "dark";
-
-const backgroundFromValue = (value: string) =>
-  BACKGROUND_NAMES.find((name) => bgValue(name) === value) ?? null;
+const isTheme = (value: unknown): value is Theme | null =>
+  value === null || value === "light" || value === "dark";
 
 export default function App() {
   const [expression, setExpression] = useState<ExpressionName>("neutral");
@@ -100,11 +107,10 @@ export default function App() {
     () => null,
     isCostume,
   );
-  const [theme, setTheme] = usePersistent<Theme>(
-    "lilpix:theme",
-    () => (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"),
-    isTheme,
-  );
+  // Follows the system until a theme is picked, like the about page.
+  const systemDark = useMediaQuery("(prefers-color-scheme: dark)");
+  const [savedTheme, setTheme] = usePersistent<Theme | null>("lilpix:theme", () => null, isTheme);
+  const theme: Theme = savedTheme ?? (systemDark ? "dark" : "light");
   const [sound, setSound] = usePersistent("lilpix:sound", () => true);
   const [leds, setLeds] = usePersistent("lilpix:leds", () => false);
   const [follow, setFollow] = usePersistent("lilpix:follow", () => true);
@@ -123,9 +129,9 @@ export default function App() {
   const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
 
   const previewExpression = highlighted && isExpression(highlighted) ? highlighted : null;
-  const previewShell = highlighted ? shellFromValue(highlighted) : null;
+  const previewShell = highlighted ? fromValue(SHELL_NAMES, shellValue, highlighted) : null;
   const previewCostume = highlighted ? costumeFromValue(highlighted) : undefined;
-  const previewBackground = highlighted ? backgroundFromValue(highlighted) : null;
+  const previewBackground = highlighted ? fromValue(BACKGROUND_NAMES, bgValue, highlighted) : null;
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -138,16 +144,20 @@ export default function App() {
   }, [setCostume]);
 
   // Phones look around with the gyroscope. iOS only allows asking for sensor
-  // access from a user gesture, so wait for the first tap there.
+  // access from a user gesture, so ask on a tap there. It has to be touchend:
+  // a touch pointerdown doesn't count as a gesture, and the request fails.
   useEffect(() => {
     if (!mobile) return;
     if (!tiltNeedsPermission()) {
       void enableTilt();
       return;
     }
-    const onFirstTap = () => void enableTilt();
-    window.addEventListener("pointerdown", onFirstTap, { once: true });
-    return () => window.removeEventListener("pointerdown", onFirstTap);
+    const onTap = () =>
+      void enableTilt().then((settled) => {
+        if (settled) window.removeEventListener("touchend", onTap);
+      });
+    window.addEventListener("touchend", onTap);
+    return () => window.removeEventListener("touchend", onTap);
   }, [mobile]);
 
   const choose = (name: ExpressionName) => {
@@ -175,7 +185,7 @@ export default function App() {
     return () => clearTimeout(id);
   }, [costumeLabel]);
 
-  const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
+  const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
 
   const toggleLeds = () => setLeds((on) => !on);
   const toggleFollow = () => setFollow((on) => !on);
@@ -291,6 +301,7 @@ export default function App() {
               theme={theme}
               leds={leds}
               follow={follow}
+              reducedMotion={reducedMotion}
               onClick={cycle}
             />
           </Float>

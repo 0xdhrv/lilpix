@@ -15,7 +15,7 @@
 
 - **15 expressions**, each with its own eye grid, LED pattern and chiptune sound
 - **RGB LEDs** that breathe, blink, chase or cycle through a rainbow, with bloom
-- **9 backdrops** (gradients, grids, sparkles), each in a light and a dark version
+- **17 backdrops** (gradients, grids, sparkles), each in a light and a dark version
 - **Follows you**: the eyes track your cursor, or your phone's tilt on mobile
 - **Command menu** with live previews: hover an expression or backdrop to try it
 

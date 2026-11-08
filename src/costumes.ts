@@ -1,4 +1,5 @@
 import type { Theme } from "./backgrounds.ts";
+import type { CostumeData } from "./costume-shapes.ts";
 
 // Each costume recolors the bot and adds a mesh from src/costumes/<name>: the
 // Halloween ones are traced from Vercel's Lil Pix nav logo, which morphs into
@@ -210,6 +211,15 @@ export function costumeLook(name: CostumeName, theme: Theme): Look {
   const costume: CostumeDef = COSTUMES[name];
   return theme === "light" ? { ...costume, ...costume.light } : costume;
 }
+
+// Traced costumes are JSON meshes; modeled ones are modules that build theirs.
+const loaders = import.meta.glob<CostumeData>(["./costumes/*.json", "./costumes/*.ts"], {
+  import: "default",
+});
+
+/** Loads a costume's meshes, from its JSON file or the module that builds them. */
+export const costumeLoader = (name: CostumeName) =>
+  loaders[`./costumes/${name}.json`] ?? loaders[`./costumes/${name}.ts`];
 
 export const isUpsideDown = (name: CostumeName | null) =>
   name !== null && (COSTUMES[name] as CostumeDef).upsideDown === true;
