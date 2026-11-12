@@ -28,7 +28,6 @@ type Sprite = {
   part?: string;
 };
 export type CostumeData = {
-  /** Moving parts by name. */
   parts?: Record<string, PartInfo>;
   groups: Group[];
   sprites: Sprite[];
@@ -37,7 +36,6 @@ export type CostumeData = {
 
 export const vec = (x: number, y: number, z: number): Vec => ({ x, y, z });
 
-/** A tube of `sides` around a polyline, as quads. */
 export function tube(points: Vec[], radii: number[], sides = 6) {
   const rings = points.map((p, i) => {
     const a = points[Math.max(0, i - 1)];
@@ -49,7 +47,6 @@ export function tube(points: Vec[], radii: number[], sides = 6) {
     tx /= tl;
     ty /= tl;
     tz /= tl;
-    // A side vector off the tangent, then the third axis.
     let ux = -ty;
     let uy = tx;
     let uz = 0;
@@ -77,7 +74,6 @@ export function tube(points: Vec[], radii: number[], sides = 6) {
   return quads;
 }
 
-/** A low-poly ball, squashed by `sy` on the y axis. */
 export function ball(c: Vec, r: number, sy = 1, rows = 5, sides = 8) {
   const faces: Vec[][] = [];
   const at = (i: number, k: number) => {
@@ -105,7 +101,6 @@ export function disc(c: Vec, r: number, sides = 8) {
   );
 }
 
-/** A ball with its own radius on each axis. */
 export function blob(c: Vec, rx: number, ry: number, rz: number, rows = 5, sides = 8) {
   return ball(vec(0, 0, 0), 1, 1, rows, sides).map((face) =>
     face.map((p) => vec(c.x + p.x * rx, c.y + p.y * ry, c.z + p.z * rz)),
@@ -186,10 +181,6 @@ type PieceSpec = {
   shapes: Vec[][];
 };
 
-/**
- * Costume data from shapes in logo coordinates. Parts pivot about their
- * `origin`; uniform ones keep their proportions so they can spin.
- */
 export function costume({
   parts = {},
   pieces,

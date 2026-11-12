@@ -54,7 +54,6 @@ function PixelEye({ rows }: { rows: string[] }) {
   );
 }
 
-// A single lit pixel, same unit as the eyes. Text stays for screen readers.
 function CurrentMark() {
   return (
     <span className="current">
@@ -76,9 +75,7 @@ export function Face({ name }: { name: ExpressionName }) {
 type CommandMenuProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Touch device: don't auto-focus the search field (it would open the keyboard). */
   touch: boolean;
-  /** Highlighted item; controlled so cmdk reports keyboard and pointer moves. */
   highlighted: string;
   onHighlight: (value: string) => void;
   expression: ExpressionName;

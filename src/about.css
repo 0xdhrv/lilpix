@@ -4,7 +4,6 @@
 @layer theme, base, components, utilities;
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities);
-/* Harmony (Evil Martians) palette replaces Tailwind's default colors. */
 @import "@evilmartians/harmony/tailwind.css";
 
 /* Geist Mono by Vercel, SIL Open Font License — see assets/fonts/GeistMono-OFL.txt */
@@ -23,12 +22,9 @@
   font-display: swap;
 }
 
-/* The about page (about/index.html) */
-
 :root {
   --prose: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  /* Harmony neutral: grey, equal contrast steps. */
   --bg: var(--color-neutral-100);
   --fg: var(--color-neutral-950);
   --muted: var(--color-neutral-700);
@@ -56,7 +52,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Geist Pixel stays the display voice: nav, headings, buttons. */
 .nav,
 .about h1,
 .about h2,
@@ -108,8 +103,6 @@ code {
   border-radius: 5px;
   background: var(--tile);
 }
-
-/* Layout */
 
 .nav,
 .about,
@@ -172,7 +165,6 @@ code {
   font-size: 20px;
 }
 
-/* Signature: the bot's screen with two pixel eyes, marking every section. */
 .about h2::before {
   content: "";
   flex: none;
@@ -201,8 +193,6 @@ code {
 .about p:last-child {
   margin-bottom: 0;
 }
-
-/* Hero */
 
 .hero {
   display: grid;
@@ -270,8 +260,6 @@ code {
   scale: 0.97;
 }
 
-/* Things to try */
-
 .controls {
   display: grid;
   gap: 4px;
@@ -305,12 +293,9 @@ code {
   }
 }
 
-/* Expression gallery, built by src/about.ts */
-
 .carousel {
   margin-top: 24px;
   overflow: hidden;
-  /* Fade the edges so tiles slide in and out instead of being clipped. */
   mask-image: linear-gradient(
     to right,
     transparent,
@@ -408,8 +393,6 @@ code {
   color: var(--muted);
 }
 
-/* Lists */
-
 .notes {
   display: grid;
   gap: 12px;
@@ -437,8 +420,6 @@ code {
   }
 }
 
-/* The teardown figure (built by figures/anatomy/build.mjs) */
-
 .anatomy {
   display: block;
   width: 100%;
@@ -449,7 +430,6 @@ code {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* No auto-motion: the strip becomes a plain swipeable row, without the duplicates. */
   .carousel {
     overflow-x: auto;
     mask-image: none;

@@ -38,7 +38,6 @@ const RAILS = [-30, 30];
 const RAIL_Y = [-54, 264];
 const RULER = { x: 60, y: -40, w: 9, d: 292, r: 1 };
 
-// Inside, back to front.
 const OPEN = { x0: -HX + 3, x1: HX - 3, z0: Z0 + 3, z1: Z0 + BODY_H - 3 };
 const BOARD = { x0: -40, x1: 40, z0: Z0 + 7, z1: Z0 + 87, y0: 14, y1: 16.4 };
 const MATRIX = { x0: -43, x1: 43, z0: Z0 + 4, z1: Z0 + 91, y0: 27, y1: 29 };
@@ -56,7 +55,7 @@ const EYE_Z = Z0 + 47.4 - 0.95 * S;
 const EYE_HX = [-6, 6];
 const MAX_PIXELS = 96;
 
-// One spring per assembly: 0 assembled, 1 apart. The outside leaves first.
+// One spring per assembly: 0 assembled, 1 apart.
 const PIECES = {
   cover: { move: 214, sled: { y: 31, d: 9 } },
   display: { move: 142, sled: { y: 23, d: 8 } },
@@ -89,7 +88,6 @@ const flat = (x0, z0, x1, z1, r, steps = 6) =>
     true,
   );
 const ALONG_Y = (x = 0, z = 0) => G.frameOf([x, 0, z], [0, 1, 0], [1, 0, 0], [0, 0, 1]);
-// A box standing out of a vertical face, from y0 to y1.
 const boxY = (x0, x1, z0, z1, y0, y1, r = 0.6, steps = 3) =>
   G.prismOf(
     ALONG_Y(),
@@ -105,7 +103,6 @@ const byDepth = (list, point) =>
   [...list].sort((a, b) => k.depthOf(point(a), P) - k.depthOf(point(b), P));
 
 let clips = 0;
-// A recess in a vertical face at y: inner walls, a back plane, and content clipped to the opening.
 function recess({ x0, x1, z0, z1, r, depth }, y, back = "", backClass = "lp-well", inside = "") {
   const id = `lp-clip-${clips++}`;
   const ring = k.roundedPlan({ x: x0, y: z0, w: x1 - x0, d: z1 - z0, r }, 6);
@@ -142,7 +139,6 @@ function recess({ x0, x1, z0, z1, r, depth }, y, back = "", backClass = "lp-well
   ].join("");
 }
 
-// The opening of the rear shell, projected: what sits inside is only seen through it.
 const OPENING = k.pathOf(
   k
     .roundedPlan(
@@ -178,12 +174,10 @@ function plate() {
   );
   const groove = k.insetPlan(PLATE, 5);
   out.push(L(k.planOutline(groove, 0, P), { tone: "lo" }));
-  // The Ship grid: a dot every 12 units inside the groove.
   const grid = [];
   for (let x = PLATE.x + 11; x <= PLATE.x + PLATE.w - 11; x += 12)
     for (let y = PLATE.y + 11; y <= PLATE.y + PLATE.d - 11; y += 12) grid.push(at([x, y, 0]));
   out.push(D(grid, { size: 0.42, tone: "lo" }));
-  // An engraved ▲ between the rails, pointing back at lilpix.
   const tri = (s, cy) =>
     k.onTop(
       [
@@ -212,7 +206,6 @@ function plate() {
       { size: 0.5 },
     ),
   );
-  // Ruler under the sled pointers: a tick every 4 units, a major every 20.
   out.push(Sd(k.slabOf(RULER, 0, 0.6, P, 3), { tone: "lo", crease: "none" }));
   const ticks = k.topTicks(
     RULER.y + 4,
@@ -235,7 +228,6 @@ function plate() {
       { size: 0.45 },
     ),
   );
-  // Label plate: the one engraved label, and a ▲.
   const label = { x: -76, y: 236, w: 38, d: 16, r: 1.4 };
   out.push(Sd(k.slabOf(label, 0, 0.8, P, 3), { tone: "lo", crease: "none" }));
   out.push(L(k.planOutline(k.insetPlan(label, 1.6), 0.8, P, 3), { tone: "faint" }));
@@ -306,7 +298,6 @@ function rails() {
   return out.join("");
 }
 
-// A sled on the two rails, with an index arm over the ruler.
 function sled({ y, d }, name) {
   const plan = { x: -50, y, w: 100, d, r: 1.5 };
   const out = [
@@ -344,7 +335,6 @@ function ear(sign) {
     }),
   ];
   if (sign > 0) {
-    // Vent slots on the outer face, as on the 3D bot: 11 black slots, 6.7 tall, centred on the body.
     const slot = (y) =>
       k.pathOf(
         k
@@ -382,7 +372,6 @@ function rearShell() {
       { size: 0.45 },
     ),
   );
-  // Inside: molded ribs on the back wall, a sticker, and four standoffs for the board.
   const backZ = (z) => -z;
   const ribs = [];
   for (let x = -36; x <= 36; x += 12)
@@ -445,7 +434,7 @@ function board() {
   const out = [Sd(boxY(x0, x1, z0, z1, y0, y1, 3, 5), { tone: "hi" })];
   const face = [];
   face.push(L(flat(x0 + 2.4, z0 + 2.4, x1 - 2.4, z1 - 2.4, 1.6), { tone: "faint" }));
-  // Copper traces between the parts: each starts and ends on a part's edge.
+  // Copper traces: each starts and ends on a part's edge.
   face.push(
     L(
       [
@@ -488,7 +477,6 @@ function board() {
     [32, z(46)],
   ])
     out.push(Sd(boxY(a, a + 3, c, c + 1.6, y1, y1 + 1, 0.2, 2), { tone: "mid" }));
-  // Pin 1 dots and the QFN's pads.
   out.push(
     D([at([-12.4, y1 + 1.6, z(60.4)]), at([15.4, y1 + 1.4, z(62.6)])], {
       size: 0.4,
@@ -499,16 +487,13 @@ function board() {
   for (let i = 0; i < 6; i++)
     pads.push(at([-11.5 + i * 3.4, y1, z(41)]), at([7, y1, z(44.5 + i * 3.2)]));
   out.push(D(pads, { size: 0.35, tone: "mid" }));
-  // The buzzer that plays each face's chiptune.
   out.push(Sd(rodY(-26, z(24), 9, y1, y1 + 5), { tone: "hi" }));
   out.push(
     L(faceRing(-26, z(24), 6.4, y1 + 5) + faceRing(-26, z(24), 1.4, y1 + 5), {
       tone: "lo",
     }),
   );
-  // The click switch: press it and lilpix changes face.
   out.push(Sd(rodY(-28, z(72), 2.4, y1 + 3, y1 + 5.2), { tone: "hi", lit: true }));
-  // Screws into the standoffs.
   for (const [x, c] of [
     [-34, z0 + 6],
     [34, z0 + 6],
@@ -536,7 +521,7 @@ function display() {
       className: "lp-dark",
     }),
   );
-  // The matrix: 32 × 22 LEDs at half the face pixel's pitch; a face pixel lights a 2 × 2 block.
+  // 32 × 22 LEDs at half the face pixel's pitch; a face pixel lights a 2 × 2 block.
   const grid = [];
   for (let j = -16; j < 16; j++)
     for (let i = -12; i < 10; i++) grid.push([(j + 0.5) * PITCH, -(EYE_Z + (i + 0.5) * PITCH)]);
@@ -546,7 +531,6 @@ function display() {
       `<g class="lp-unlit">${grid.map(([x, y]) => `<rect x="${(x - 0.7).toFixed(2)}" y="${(y - 0.7).toFixed(2)}" width="1.4" height="1.4"/>`).join("")}</g><g class="lp-pixels" data-part="matrix"></g>`,
     ),
   );
-  // Three RGB LEDs and their driver.
   LED_X.forEach((x, i) => {
     out.push(
       Sd(boxY(x - 3.3, x + 3.3, LED_Z - 3.3, LED_Z + 3.3, y1, y1 + 2.4, 0.4, 2), { tone: "hi" }),
@@ -676,7 +660,6 @@ const kitSource = readFileSync(join(HERE, "kit", "iso-kit.mjs"), "utf8").replace
 // torph ships CommonJS; wrap it so the standalone page can use it without a bundler.
 const torphSource = `const torph=(()=>{const exports={};${readFileSync(join(ROOT, "node_modules", "torph", "dist", "index.js"), "utf8")}\nreturn exports})();`;
 
-// One palette per shell in src/shells.ts, so the figure wears the same shell as the 3D bot.
 // Tones are the graphite figure's own steps, measured as mixes of the body colour.
 const hex = (c) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16));
 const mix = (c, to, t) =>
@@ -690,7 +673,6 @@ const mix = (c, to, t) =>
 const shellVars = (body) => {
   const [r, g, b] = hex(body);
   const pale = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 > 0.5;
-  // Lines go light on a dark shell and dark on a pale one.
   const ink = pale ? "#000000" : "#ffffff";
   const vars = {
     paper: body,

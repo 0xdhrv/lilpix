@@ -1,8 +1,5 @@
 import { ball, blob, costume, rotate, tube, vec } from "../costume-shapes.ts";
 
-// Kali Chaudas (Narak Chaturdashi), the night evil is warded off: a lime and
-// seven green chillies hang from each ear, nimbu-mirchi style.
-
 const CHILLIES = 7;
 
 function charm(s: number) {

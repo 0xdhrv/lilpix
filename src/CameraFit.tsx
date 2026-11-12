@@ -6,14 +6,8 @@ import { MathUtils, PerspectiveCamera, Vector3 } from "three";
 // purpose so the bot loads zoomed out with room around it on any aspect ratio.
 const FIT_WIDTH = 42;
 const FIT_HEIGHT = 38;
-/** Direction the camera looks at the bot from: front, a little right and above. */
 const VIEW = new Vector3(16, 9, 44).normalize();
 
-/**
- * Places the camera so the bot fits the viewport, on load and whenever the
- * viewport resizes (rotating a phone, resizing a window). Zooming in or out
- * with the controls afterwards is left alone until the next resize.
- */
 export function CameraFit() {
   const camera = useThree((s) => s.camera);
   const width = useThree((s) => s.size.width);

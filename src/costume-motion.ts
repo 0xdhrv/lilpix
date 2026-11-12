@@ -2,10 +2,9 @@ import type { CostumeName } from "./costumes.ts";
 import type { Pose, Rig, Vec } from "./costume-rig.ts";
 import { ball, disc, tube, vec } from "./costume-shapes.ts";
 
-// Idle motion for the costumes, after Vercel's Lil Pix logo. Times are in
-// milliseconds since the costume went on; positions and angles are in the
-// logo's head coordinates (see costume-rig.ts). Meshes were captured at t = 0,
-// so bending motions move vertices by the change since then.
+// Times are in milliseconds since the costume went on; positions and angles
+// are in the logo's head coordinates (see costume-rig.ts). Meshes were captured
+// at t = 0, so bending motions move vertices by the change since then.
 
 type Motion = (t: number, rig: Rig) => Partial<Pose> | void;
 
@@ -86,7 +85,6 @@ function pulse(
   return 1 - ease.inOut(clamp01((x - attack - hold) / release));
 }
 
-/** A damped spring chasing `target`, kept in the rig's state under `key`. */
 function spring(
   rig: Rig,
   key: string,
@@ -112,11 +110,8 @@ function spring(
   return value;
 }
 
-/** Scale of a costume just put on: eases in from nothing. */
 export const growIn = (t: number) => ease.out(clamp01(t / 300));
 
-// Lil Frank: each hex nut on the neck bolts gives a sixth of a turn every
-// ~3.2 s, the left one half a beat after the right.
 function nutTurn(t: number) {
   const a = t - 1100;
   if (a < 0) return 0;
@@ -125,8 +120,6 @@ function nutTurn(t: number) {
   return (k + ease.out(clamp01(x / 380))) * (Math.PI / 3);
 }
 
-// Lil Bat's wings: an arm and four fingers in the wing's plane, webbed
-// between the fingertips, hinged at the side of the head.
 const FINGERS = [
   { len: 28, angle: 30, pull: 0.3 },
   { len: 24, angle: -8, pull: 0.3 },
@@ -170,7 +163,6 @@ function wing(
   });
 }
 
-/** The flying bat's flap: snappy down, slower up. */
 function flap(phase: number) {
   const e = phase - Math.floor(phase);
   return e < 0.45 ? Math.cos((Math.PI * e) / 0.45) : -Math.cos((Math.PI * (e - 0.45)) / 0.55);
@@ -189,7 +181,6 @@ const HAT_SPINE = [
   [30.2, -73.9, 6.6, 1],
 ];
 
-/** Sway weight of a hat vertex: the weight at the closest point on the spine. */
 function hatWeight(p: Vec) {
   let best = Infinity;
   let weight = 0;
@@ -216,7 +207,6 @@ const hatSway = (t: number) => ({
   y: -1.2 * wave(t, 3000, 0.27),
 });
 
-// Lil Wrapped's two loose bandage strips: a wave travels down each.
 const STRIPS = [
   {
     root: vec(-46.4, -21.6, 16),
@@ -272,7 +262,6 @@ function rotateZ(p: Vec, angle: number, c: Vec) {
   );
 }
 
-/** Lil Spider's hop: a bounce every ~6.4 s, the legs stretching out with it. */
 function spiderHop(t: number) {
   const u = t - 1700;
   let bounce = 0;
@@ -288,7 +277,6 @@ function spiderHop(t: number) {
   };
 }
 
-// Lil Alien's antennae splay out every ~4.8 s.
 function splay(t: number) {
   const a = t - 1500;
   if (a < 0) return 0;
@@ -321,7 +309,6 @@ function antenna(t: number, e: number) {
   });
   curve.splice(1, 0, vec(13 * s, -41.5, -4));
   const root = curve[0];
-  // Curl: the further along the stalk, the more it turns about the root.
   return curve.map((p, j) => {
     const u = j / 7;
     let dx = p.x - root.x;
@@ -353,8 +340,6 @@ const BUBBLES = [
   [-2, 2, 6.4, 5200, 700, 1300],
 ];
 
-// Lil Cauldron's wire handle: up the left lug, over in a squared-off arc,
-// down to the right lug.
 const HANDLE = [
   [-47.6, -29.8],
   ...Array.from({ length: 19 }, (_, i) => {
@@ -373,7 +358,6 @@ const DRIPS = [
   [14.5, 0.98, 320, 110, 300, 2200, 780, 14],
   [28.5, 1.15, 500, 140, 340, 1800, 1500, 15],
 ].map(([x, size, swell, pull, rest, gravity, first, seed]) => {
-  // Each drip runs a loop of 64 cycles, each a little different.
   let total = 0;
   const cycles = Array.from({ length: 64 }, (_, i) => {
     const r = (n: number) => (i === 0 ? 0.5 : hash(31.7 * seed + 7.3 * i + 1.91 * n));
@@ -390,7 +374,6 @@ const DRIPS = [
   return { x, size, first: first - cycles[0].swell - cycles[0].pull, cycles, total };
 });
 
-/** A drip's bulb hanging off the bottom edge, plus its last drop if still falling. */
 function drip(d: (typeof DRIPS)[number], t: number) {
   const S = d.size;
   const shapes: Vec[][] = [];
@@ -413,14 +396,12 @@ function drip(d: (typeof DRIPS)[number], t: number) {
     r = 3.1 * S * (1.04 - 0.1 * f * f);
     stretch = 1 + 0.4 * f * f;
   } else {
-    // Just let go: the bulb springs back up, and the drop falls.
     const since = u - c.swell - c.pull;
     len = 0.7 * S + 3.85 * S * Math.exp(-since / 70) * Math.cos(0.04 * since);
     r = (0.9 + 0.4 * clamp01(since / 220)) * S;
   }
   shapes.push(...tube([vec(d.x, 39, -39), vec(d.x, 40 + len, -39)], [2.4 * S, r * 0.8]));
   shapes.push(...ball(vec(d.x, 40 + len, -39), r, stretch, 4, 8));
-  // The drop let go at the end of the previous pull.
   const prev = u >= c.swell + c.pull ? c : d.cycles[(i - 1 + 64) % 64];
   const fall = (u >= c.swell + c.pull ? u - c.swell - c.pull : u + prev.rest) / 1000;
   if (fall < 0.7) {
@@ -433,7 +414,6 @@ function drip(d: (typeof DRIPS)[number], t: number) {
   return shapes;
 }
 
-/** The brew's domed surface: highest in the middle. */
 const brewHeight = (x: number, z: number) => -52 + 7 * Math.min(1, (x * x + z * z) / 900);
 
 // Lil Potion's fizz: [x, radius, period, offset], rising in the brew.
@@ -468,7 +448,6 @@ const SPARKS = Array.from({ length: 18 }, (_, i) => {
   return vec(r * Math.cos(a), y, r * Math.sin(a));
 });
 
-/** Sparks of every burst this frame, by shell color. */
 function fireworks(t: number) {
   const shells: Vec[][][] = SHELLS.map(() => []);
   BURSTS.forEach((b, i) => {
@@ -479,7 +458,6 @@ function fireworks(t: number) {
     const x = b.x + (hash(7 * k + i) - 0.5) * 12;
     const y = b.y + (hash(13 * k + i + 3) - 0.5) * 6;
     if (m < 520) {
-      // The rocket climbs off the head, a short trail behind it.
       for (let j = 0; j < 4; j++) {
         const f = ease.out(clamp01(m / 520 - 0.07 * j));
         const p = vec(lerp(0.3 * x, x, f), lerp(-44, y, f), b.z);
@@ -507,7 +485,6 @@ export const MOTIONS: Partial<Record<CostumeName, Motion>> = {
     return { roll: 0.016 * wave(t, 4600), lift: 0.5 * wave(t, 2300) };
   },
 
-  // The cape collar breathes in and out, most at its tips.
   drac: (t, rig) => {
     const breath = 1.3 * Math.sin((TAU * t) / 3800);
     rig.deform("collar", (p) => {
@@ -524,7 +501,6 @@ export const MOTIONS: Partial<Record<CostumeName, Motion>> = {
     });
   },
 
-  // The sheet's hem ripples in scallops and blows to one side in gusts.
   spook: (t, rig) => {
     const sheet = (time: number, x: number, nx: number, nz: number, s: number) => {
       const w = 0.5 - 0.5 * Math.cos(TAU * (12 * s + 0.0003 * time));
@@ -561,7 +537,6 @@ export const MOTIONS: Partial<Record<CostumeName, Motion>> = {
     };
   },
 
-  // The lid puffs up on its hinge now and then; the glow inside flickers.
   patch: (t, rig) => {
     const puff = pulse(t, 3500, 1500, 150, 60, 560, 0.5);
     const lift = spring(rig, "lid", t, 1.2 + 2.2 * puff, 260, 0.45) - 1.2;
@@ -574,7 +549,6 @@ export const MOTIONS: Partial<Record<CostumeName, Motion>> = {
     rig.color("glow", 255, lerp(150, 236, glow), lerp(40, 160, glow));
   },
 
-  // The goo wobbles down the sides and along the bottom edge.
   slime: (t, rig) => {
     const side = (time: number, y: number, a: number) =>
       0.4 * Math.sin(0.23 * y + a + time / 2100) + 0.25 * Math.sin(0.53 * y - time / 1500 + a);
@@ -599,7 +573,6 @@ export const MOTIONS: Partial<Record<CostumeName, Motion>> = {
     return { lift: 0.8 * wave(t, 2600), roll: 0.022 * wave(t, 3700) };
   },
 
-  // The right ear flicks every few seconds.
   kitty: (t, rig) => {
     const flick = spring(rig, "flick", t, pulse(t, 3400, 900, 55, 70, 150, 0.45), 120, 0.38);
     const yaw = -0.62 * flick;
@@ -614,7 +587,6 @@ export const MOTIONS: Partial<Record<CostumeName, Motion>> = {
     });
   },
 
-  // Loose bandage strips ripple off the side and sway.
   wrapped: (t, rig) => {
     STRIPS.forEach((strip, index) => {
       const name = `strip${index}`;
@@ -656,8 +628,7 @@ export const MOTIONS: Partial<Record<CostumeName, Motion>> = {
     return { lift: 0.9 * flap(phase - 0.15) + 1.3 * wave(t - 1100, 2200) };
   },
 
-  // Folded wings breathe; the bat sways on its twig. Its wings are built the
-  // right way up, then turned over.
+  // Its wings are built the right way up, then turned over.
   "hanging-bat": (t, rig) => {
     const x = wave(t, 3800);
     const arm = 61.9 + 2.4 * x;
@@ -670,7 +641,6 @@ export const MOTIONS: Partial<Record<CostumeName, Motion>> = {
     return { roll: 0.035 * wave(t, 3400), lift: 0.5 * wave(t, 3800, 0.2) };
   },
 
-  // The curled tip of the hat sways.
   witch: (t, rig) => {
     const now = hatSway(t);
     const rest = hatSway(0);
@@ -681,15 +651,12 @@ export const MOTIONS: Partial<Record<CostumeName, Motion>> = {
     });
   },
 
-  // The crossbones rattle every few seconds.
   skully: (t, rig) => {
     const rattle = pulse(t, 4400, 1500, 160, 520, 300, 0.35) * Math.sin(t / 85) * 0.09;
     rig.turn("boneA", 0, 0, rattle);
     rig.turn("boneB", 0, 0, rattle);
   },
 
-  // Throws its head back to howl every ~6 s, ears back and ruff out; the
-  // right ear flicks in between.
   wolf: (t, rig) => {
     const howl = pulse(t, 6000, 700, 520, 900, 620, 0.3);
     const twitch = pulse(t + 2200, 3100, 1800, 60, 40, 170, 0.6) * (1 - howl);
@@ -712,7 +679,6 @@ export const MOTIONS: Partial<Record<CostumeName, Motion>> = {
     return { pitch: -0.42 * howl, lift: -4 * howl };
   },
 
-  // Legs stretch out on each hop and sway at the hips.
   spider: (t, rig) => {
     const { lift, stretch } = spiderHop(t);
     const flare = Math.max(-1, Math.min(1, lift / 5));
@@ -740,14 +706,12 @@ export const MOTIONS: Partial<Record<CostumeName, Motion>> = {
     return { lift, roll: 0.045 * wave(t, 5200), yaw: 0.07 * wave(t, 7400) };
   },
 
-  // The candle flame flickers, and every 4 s it's blown out and relights.
   flame: (t, rig) => {
     let size = 1;
     let narrow = 1;
     const smoke: Vec[][] = [];
     if (t >= 1600) {
       const c = (t - 1600) % 4000;
-      // A curl of smoke rises from the wick once it's out.
       const e = (c - 340) / 950;
       if (e > 0 && e < 1) {
         const fade = 1 - ease.in(e);
@@ -775,7 +739,6 @@ export const MOTIONS: Partial<Record<CostumeName, Motion>> = {
     return { lift: -0.7 * wave(t, 3800) };
   },
 
-  // The fire flickers and the brew bubbles, swelling and popping.
   cauldron: (t, rig) => {
     const flicker = 1 + 0.12 * noise(t / 230, 3) + 0.06 * noise(t / 90, 10);
     rig.scale("fire", 1, 0.96 + 0.04 * flicker, 1);
@@ -814,7 +777,6 @@ export const MOTIONS: Partial<Record<CostumeName, Motion>> = {
       const bz = Math.max(-limit, Math.min(limit, z + (hash(13 * k + 17 * i + 5) - 0.5) * 9));
       const swell = ease.out(Math.min(1, m / grow));
       const R = r * (0.35 + 0.65 * swell);
-      // Rises out of the brew, then flattens as it pops.
       const flat = m < grow ? 1 : 1 - ease.in(clamp01((m - grow) / 70));
       const sunk = 0.8 * R * (1 - swell);
       bubbles.push(...ball(vec(bx, brewHeight(bx, bz) + sunk, bz), R, flat));
@@ -827,7 +789,6 @@ export const MOTIONS: Partial<Record<CostumeName, Motion>> = {
     };
   },
 
-  // Fizz rises up the glass beside the face.
   potion: (t, rig) => {
     const fizz: Vec[][] = [];
     FIZZ.forEach(([x, r, period, at], i) => {
@@ -849,9 +810,6 @@ export const MOTIONS: Partial<Record<CostumeName, Motion>> = {
     }
   },
 
-  // Diwali, a day at a time.
-
-  // The calf flicks its ears, and its bell swings as it sways.
   "vagh-baras": (t, rig) => {
     for (const [part, s, delay] of [
       ["earL", -1, 1200],
@@ -864,14 +822,12 @@ export const MOTIONS: Partial<Record<CostumeName, Motion>> = {
     return { roll, pitch: 0.02 * wave(t, 1700), lift: 0.6 * wave(t, 3400, 0.25) };
   },
 
-  // The coins circle the kalash, bobbing.
   dhanteras: (t, rig) => {
     rig.turn("coins", 0, t / 2600, 0);
     rig.shift("coins", 0, 1.5 * wave(t, 2600));
     return { lift: 0.6 * wave(t, 3000), roll: 0.02 * wave(t, 4400) };
   },
 
-  // The nimbu-mirchi swing from the ears, against the head's sway.
   "kali-chaudas": (t, rig) => {
     const roll = 0.03 * wave(t, 4200);
     for (const [part, phase] of [
@@ -883,7 +839,6 @@ export const MOTIONS: Partial<Record<CostumeName, Motion>> = {
     return { roll, yaw: 0.06 * wave(t, 6100) };
   },
 
-  // The lights twinkle and the diya's flame stretches as it burns.
   diwali: (t, rig) => {
     BULBS.forEach(([part, r, g, b], i) => {
       const k = 0.4 + 1.4 * smooth(0.5 + 0.6 * wave(t, 2400, -i / 4));
@@ -899,7 +854,6 @@ export const MOTIONS: Partial<Record<CostumeName, Motion>> = {
     return { lift: 0.5 * wave(t, 3000), roll: 0.015 * wave(t, 4600) };
   },
 
-  // The plume on the safa sways.
   "bhai-bij": (t, rig) => {
     rig.turn("kalgi", 0.08 * wave(t, 2300), 0, 0.1 * wave(t, 3100, 0.2));
     return { lift: 0.5 * wave(t, 3100), roll: 0.015 * wave(t, 5200) };

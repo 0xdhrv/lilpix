@@ -52,8 +52,7 @@ const hasWebGL = (() => {
 
 const MAX_DPR = Math.min(devicePixelRatio, 1.75);
 
-// Steps the render resolution down while frames drop and back up once there's
-// headroom. Goes straight to the renderer, so the React tree doesn't re-render.
+// Goes straight to the renderer, so the React tree doesn't re-render.
 function AdaptiveResolution() {
   const setDpr = useThree((s) => s.setDpr);
   return (
@@ -64,13 +63,11 @@ function AdaptiveResolution() {
   );
 }
 
-/** Type guard for one of `names`. */
 const oneOf =
   <T extends string>(names: readonly T[]) =>
   (value: unknown): value is T =>
     (names as readonly unknown[]).includes(value);
 
-/** The name in `names` whose cmdk item value is `value`, or null. */
 const fromValue = <T extends string>(
   names: readonly T[],
   toValue: (name: T) => string,
@@ -107,7 +104,6 @@ export default function App() {
     () => null,
     isCostume,
   );
-  // Follows the system until a theme is picked, like the about page.
   const systemDark = useMediaQuery("(prefers-color-scheme: dark)");
   const [savedTheme, setTheme] = usePersistent<Theme | null>("lilpix:theme", () => null, isTheme);
   const theme: Theme = savedTheme ?? (systemDark ? "dark" : "light");
@@ -116,12 +112,11 @@ export default function App() {
   const [follow, setFollow] = usePersistent("lilpix:follow", () => true);
   const [fog, setFog] = usePersistent("lilpix:fog", () => false);
   const [menuOpen, setMenuOpen] = useState(false);
-  // Costume name shown briefly after ←/→; the count restarts its animation.
+  // The count restarts the label's animation.
   const [costumeLabel, setCostumeLabel] = useState<{
     text: string;
     count: number;
   } | null>(null);
-  // Item highlighted in the open menu; expressions and backgrounds preview live.
   const [highlighted, setHighlighted] = useState<string | null>(null);
   // Touch devices get the drawer and a visible trigger at any width; ⌘K needs a keyboard.
   const mobile = useMediaQuery("(max-width: 640px), (pointer: coarse)");
@@ -137,15 +132,13 @@ export default function App() {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
 
-  // Dress up for the day on festival days.
   useEffect(() => {
     const name = festivalCostume();
     if (name) setCostume(name);
   }, [setCostume]);
 
-  // Phones look around with the gyroscope. iOS only allows asking for sensor
-  // access from a user gesture, so ask on a tap there. It has to be touchend:
-  // a touch pointerdown doesn't count as a gesture, and the request fails.
+  // iOS only allows asking for sensor access from a user gesture. It has to be
+  // touchend: a touch pointerdown doesn't count as a gesture, and the request fails.
   useEffect(() => {
     if (!mobile) return;
     if (!tiltNeedsPermission()) {
@@ -168,7 +161,6 @@ export default function App() {
   const cycle = () =>
     choose(EXPRESSION_NAMES[(EXPRESSION_NAMES.indexOf(expression) + 1) % EXPRESSION_NAMES.length]);
 
-  // ←/→ step through the costumes, "No costume" included.
   const stepCostume = (by: number) => {
     const list = [null, ...COSTUME_NAMES];
     const next = list[(list.indexOf(costume) + by + list.length) % list.length];
@@ -201,8 +193,6 @@ export default function App() {
     setHighlighted(null);
   };
 
-  // ⌘K toggles the menu; number keys 1–9 pick an expression directly;
-  // ←/→ change costume.
   // Re-subscribes every render so the handler always sees current state.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

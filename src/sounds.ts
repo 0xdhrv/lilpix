@@ -1,7 +1,7 @@
 import { defineSound, ensureReady, type Layer } from "@web-kits/audio";
 import type { ExpressionName } from "./expressions.ts";
 
-// Small chiptune motifs to match the pixel-art eyes. Notes in Hz.
+// Notes in Hz.
 const C4 = 261.63;
 const EB4 = 311.13;
 const G4 = 392;

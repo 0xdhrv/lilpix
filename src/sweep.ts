@@ -1,11 +1,8 @@
 import { createShader, playSweep, type Direction } from "glimm";
 
-// Page transition between the app and the about page: a glimm band sweeps
-// across the screen, the old page held ahead of it and the new one revealed
-// behind it. glimm's own provider does this for same-document navigation;
-// these are two separate HTML pages, so this drives the same masking with a
-// cross-document View Transition instead. Browsers without one (or with
-// reduced motion) navigate normally.
+// glimm's own provider only handles same-document navigation; the app and the
+// about page are separate HTML pages, so this drives the same masking with a
+// cross-document View Transition.
 //
 // Must run before first render on both pages, so the importing entry script
 // carries blocking="render". Keep that entry small; main.tsx lazy-loads the scene.
@@ -54,7 +51,6 @@ addEventListener("pagereveal", (event) => {
     return;
   }
 
-  // Going back sweeps the other way.
   const back = navigation.activation?.navigationType === "traverse";
   const direction: Direction = back ? "rtl" : "ltr";
   const setClip = (p: number) => {

@@ -59,7 +59,6 @@ export default defineConfig({
   ]),
   build: {
     rolldownOptions: {
-      // Two pages: the 3D app and a static about page.
       input: {
         main: "index.html",
         about: "about/index.html",

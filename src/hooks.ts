@@ -9,10 +9,8 @@ import {
 } from "react";
 
 /**
- * useState backed by localStorage. Falls back to `initial` when nothing is
- * stored, the stored JSON is broken, or `isValid` rejects it (say, a
- * background that has since been removed). Only values set through the
- * returned setter are saved, so an unchosen default can change later.
+ * useState backed by localStorage. Only values set through the returned
+ * setter are saved, so an unchosen default can change later.
  */
 export function usePersistent<T>(
   key: string,
@@ -27,12 +25,9 @@ export function usePersistent<T>(
         const parsed: unknown = JSON.parse(stored);
         if (isValid(parsed)) return parsed;
       }
-    } catch {
-      // Storage blocked or unreadable: use the default.
-    }
+    } catch {}
     return initial();
   });
-  // Set once the value has been chosen here, as opposed to loaded or synced.
   const chosen = useRef(false);
 
   // Follow changes made in other tabs and pages (the about page, the anatomy
@@ -42,9 +37,7 @@ export function usePersistent<T>(
     try {
       const parsed: unknown = JSON.parse(event.newValue);
       if (isValid(parsed)) setValue(parsed);
-    } catch {
-      // Ignore unreadable values.
-    }
+    } catch {}
   });
   useEffect(() => {
     const listener = (event: StorageEvent) => onStorage(event);
@@ -56,9 +49,7 @@ export function usePersistent<T>(
     if (!chosen.current) return;
     try {
       localStorage.setItem(key, JSON.stringify(value));
-    } catch {
-      // Storage full or blocked: the setting just won't persist.
-    }
+    } catch {}
   }, [key, value]);
 
   const choose = useCallback((next: SetStateAction<T>) => {

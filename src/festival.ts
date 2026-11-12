@@ -27,8 +27,6 @@ export function festivalCostume(now = new Date()): CostumeName | null {
   try {
     if (localStorage.getItem(KEY) === day) return null;
     localStorage.setItem(KEY, day);
-  } catch {
-    // Storage blocked: dress up on every visit.
-  }
+  } catch {}
   return name;
 }
