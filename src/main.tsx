@@ -12,7 +12,6 @@ console.warn = (...args: unknown[]) => {
   warn(...args);
 };
 
-// Dev-only feedback toolbar; the DEV check lets the bundler drop it from production.
 const Agentation = import.meta.env.DEV
   ? lazy(() => import("agentation").then((m) => ({ default: m.Agentation })))
   : null;

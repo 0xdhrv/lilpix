@@ -70,7 +70,6 @@ export const restPose = (): Pose => ({ pitch: 0, yaw: 0, roll: 0, lift: 0 });
 
 type RigPart = { info: PartInfo; group?: Group };
 
-/** What a costume's motion can move, by part name. */
 export class Rig {
   /** Free storage for a motion's springs and timers; cleared per costume. */
   state: Record<string, number> = {};
@@ -96,7 +95,6 @@ export class Rig {
     part.group = group ?? undefined;
   }
 
-  /** The part's group, posed about its pivot. */
   group(name: string) {
     return this.parts.get(name)?.group;
   }
@@ -114,7 +112,6 @@ export class Rig {
     part.group.position.set(ax + x * SX, ay - y * SY, az - z * SX);
   }
 
-  /** Scale a part about its pivot. */
   scale(name: string, x = 1, y = 1, z = 1) {
     this.group(name)?.scale.set(x, y, z);
   }
@@ -197,7 +194,6 @@ export function positions(polygons: Vec[][], info: PartInfo) {
   return out;
 }
 
-/** Where a logo point sits on the bot, in bot units. */
 export const toBot = ([x, y, z]: [number, number, number]): [number, number, number] => [
   x * SX,
   -y * SY,
@@ -207,7 +203,6 @@ export const toBot = ([x, y, z]: [number, number, number]): [number, number, num
 const meshes = (part: RigPart) =>
   (part.group?.children.filter((c) => (c as Mesh).isMesh) ?? []) as Mesh[];
 
-/** Triangle indices for a planar polygon, in its dominant plane. */
 function triangulate(polygon: Vec[]) {
   let nx = 0;
   let ny = 0;

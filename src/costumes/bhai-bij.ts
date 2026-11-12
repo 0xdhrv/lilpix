@@ -1,9 +1,5 @@
 import { ball, blob, costume, tube, vec } from "../costume-shapes.ts";
 
-// Bhai Bij (Bhai Dooj), when sisters put a tilak on their brothers: a
-// saffron safa with a jewelled brooch and a plume, and a red tilak.
-
-/** One wrap of cloth round the head: a rounded square, tilted across it. */
 function wrap(y: number, a: number, b: number, tilt: number) {
   const points = Array.from({ length: 29 }, (_, k) => {
     const t = (k / 28) * Math.PI * 2;

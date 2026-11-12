@@ -22,7 +22,7 @@ const DUR = EXPRESSION_NAMES.length * HOLD;
 const n = (v: number) => +v.toFixed(4);
 const t = (s: number) => n(s / DUR);
 
-// Path data for one eye. Pixels overlap a hair so no seams show between them.
+// Pixels overlap a hair so no seams show between them.
 function eyePixels(rows: string[], cx: number) {
   const h = rows.length;
   const w = rows[0].length;
@@ -39,7 +39,6 @@ function eyePixels(rows: string[], cx: number) {
   return cells.join("");
 }
 
-// One path per expression, shown only during its slot.
 const faces = EXPRESSION_NAMES.map((name, i) => {
   const [left, right] = eyeGrids(name);
   const start = t(i * HOLD);
@@ -53,7 +52,6 @@ const faces = EXPRESSION_NAMES.map((name, i) => {
   );
 }).join("\n    ");
 
-// Eyes squash shut at every change, then pop open, like Bot.tsx does.
 const squash = (() => {
   const times = ["0"];
   const values = ["1 1"];
@@ -71,7 +69,6 @@ const squash = (() => {
   return `<animateTransform attributeName="transform" type="scale" dur="${DUR}s" repeatCount="indefinite" values="${values.join(";")}" keyTimes="${times.join(";")}"/>`;
 })();
 
-// Each LED steps through the expression colors, with a soft glow behind it.
 const leds = SLOTS.map((x, led) => {
   const colors = EXPRESSION_NAMES.map((name) => ledsFor(name).colors[led]);
   const keyTimes = EXPRESSION_NAMES.map((_, i) => t(i * HOLD)).join(";");

@@ -35,25 +35,20 @@ const EYES = [-2.58, 2.65];
 const PIXEL = 0.86;
 const EYES_Y = -0.95;
 
-// Vent slots on the right ear, as on the about-page figure: 11 closed slots.
 const EAR_HX = 17.7 / 2;
 const VENTS = Array.from({ length: 11 }, (_, i) => (i - 5) * 0.73);
 
-// Cursor tracking. Eye travel keeps the widest grid inside the screen; the
-// body turn stays subtle so the face is always readable.
+// Eye travel keeps the widest grid inside the screen.
 const LOOK_X = 1.1;
 const LOOK_Y = 0.75;
 const TURN_Y = 0.3;
 const TURN_X = 0.18;
 const CENTER = { x: 0, y: 0 };
 
-// Every lit eye pixel is one instance of a single mesh: one draw call for the
-// whole face, however many pixels an expression uses.
 const MAX_PIXELS = 96;
 // A flat quad, not a box: side walls would read as bevels when the bot tilts.
 const pixelGeometry = new PlaneGeometry(PIXEL, PIXEL).translate(0, 0, 0.06);
-// Unlit and pushed past the bloom threshold (1) so the eyes glow like the LEDs.
-// Fog skips the eyes and LEDs so the face and glow stay crisp through the haze.
+// Pushed past the bloom threshold (1) so the eyes glow like the LEDs.
 const pixelMaterial = new MeshBasicMaterial({
   color: EYE,
   toneMapped: false,
@@ -66,16 +61,13 @@ const dummy = new Object3D();
 // answers for the whole bot, so a pointer move doesn't test every triangle.
 const noRaycast = () => null;
 
-// One shell material for the body and ears; a shell change just recolors it.
 const shellMaterial = new MeshStandardMaterial({ roughness: 0.55, metalness: 0.1 });
 const ventMaterial = new MeshStandardMaterial({ color: INK, roughness: 0.9 });
 const bezelMaterial = new MeshStandardMaterial({ color: INK, roughness: 0.4 });
 const ventGeometry = new BoxGeometry(0.04, 6.7, 0.3);
-// The black slot behind each LED lens.
 const bezelGeometry = new BoxGeometry(1.75, 1.75, 0.1);
 const lensGeometry = new BoxGeometry(1.1, 1.1, 0.06);
 
-/** Identical parts that never move, drawn as one instanced mesh. */
 function StaticInstances({
   geometry,
   material,
@@ -147,7 +139,6 @@ function luminance(c: Color) {
   return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
 }
 
-// Parsed once per color, not per frame.
 function ledColor(hex: string) {
   let entry = colorCache.get(hex);
   if (!entry) {
@@ -224,14 +215,10 @@ function Leds({ leds, on, base }: { leds: Leds; on: boolean; base: string }) {
 type BotProps = {
   expression: ExpressionName;
   shell: ShellName;
-  /** Costume; it brings its own shell, screen and eye colors. */
   costume: CostumeName | null;
   theme: Theme;
-  /** LEDs stay dark until switched on. */
   leds: boolean;
-  /** Look toward the pointer (or the phone's tilt). Off eases back to center. */
   follow: boolean;
-  /** Hold still: no looking around, and costumes don't move. */
   reducedMotion: boolean;
   onClick?: () => void;
 };
@@ -251,14 +238,11 @@ export function Bot({
   const EYE_COLOR = colors?.eyes ?? EYE;
   const body = useRef<Group>(null);
   const eyes = useRef<Group>(null);
-  // Smoothed look direction, before snapping.
   const look = useRef({ x: 0, y: 0 });
-  // Smoothed body turn, kept apart from the costume's head motion added on top.
   const turn = useRef({ x: 0, y: 0 });
   const pose = useRef(restPose());
   const [left, right] = eyeGrids(expression);
 
-  // Squash the eyes shut on every expression change, then let them pop open.
   useEffect(() => {
     if (eyes.current) eyes.current.scale.y = 0.05;
   }, [expression]);
@@ -276,13 +260,10 @@ export function Bot({
     delta = Math.min(delta, 1 / 30);
     if (!eyes.current || !body.current) return;
 
-    // Quick blink every ~4s, eased back open.
     const blinking = clock.elapsedTime % 4 > 3.85;
     const openness = blinking ? 0.1 : 1;
     eyes.current.scale.y = MathUtils.damp(eyes.current.scale.y, openness, 18, delta);
 
-    // Follow the pointer (or the phone's tilt): eyes glance first, the body
-    // turns after them.
     if (reducedMotion) return;
     const target = !follow ? CENTER : tilt.active ? tilt : pointer;
     look.current.x = MathUtils.damp(look.current.x, target.x, 8, delta);
@@ -312,12 +293,10 @@ export function Bot({
       onPointerOver={() => (document.body.style.cursor = "pointer")}
       onPointerOut={() => (document.body.style.cursor = "")}
     >
-      {/* Invisible hit box standing in for the body and ears. */}
       <mesh visible={false}>
         <boxGeometry args={[17.7, 15.8, DEPTH]} />
       </mesh>
 
-      {/* Main body (x 1741–1899, y 657–815) */}
       <RoundedBox
         args={[15.8, 15.8, DEPTH]}
         radius={0.25}
@@ -328,7 +307,6 @@ export function Bot({
         raycast={noRaycast}
       />
 
-      {/* Side ears (x 1731–1908, y 666–806) */}
       <RoundedBox
         args={[17.7, 14, DEPTH - 1]}
         radius={0.25}
@@ -338,13 +316,10 @@ export function Bot({
         raycast={noRaycast}
       />
 
-      {/* Vent slots on the right side */}
       <StaticInstances geometry={ventGeometry} material={ventMaterial} positions={VENT_POSITIONS} />
 
-      {/* Screen (x 1749–1891, y 701–799) */}
       <mesh position={[0, -1.4, FRONT + 0.01]} raycast={noRaycast}>
         <boxGeometry args={[14.2, 9.8, 0.1]} />
-        {/* Unfogged, so the face keeps full contrast against the eyes. */}
         <meshPhysicalMaterial
           color={colors?.screen ?? INK}
           roughness={0.15}
@@ -354,12 +329,10 @@ export function Bot({
         />
       </mesh>
 
-      {/* Eyes */}
       <group ref={eyes} position={[0, EYES_Y, FRONT + 0.12]}>
         <EyePixels left={left} right={right} />
       </group>
 
-      {/* RGB LEDs in the top slots */}
       <Leds leds={ledsFor(expression)} on={leds} base={colors?.leds ?? INK} />
 
       <primitive object={fireLight} />

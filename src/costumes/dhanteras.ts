@@ -1,8 +1,5 @@
 import { ball, blob, costume, lathe, leaf, rotate, tube, vec } from "../costume-shapes.ts";
 
-// Dhanteras (Dhantrayodashi), the day to buy gold: a brass kalash topped with
-// mango leaves and a coconut, gold coins circling it.
-
 const TOP = vec(0, 0, 0);
 const KALASH: [number, number][] = [
   [0, -40],
@@ -27,7 +24,6 @@ const thread = Array.from({ length: 13 }, (_, k) => {
 
 const leaves = Array.from({ length: 7 }, (_, k) => {
   const a = (k / 7) * Math.PI * 2 + 0.3;
-  // Fanned out round the coconut, tips up and out.
   const out = vec(Math.cos(a) * 0.75, -0.65, Math.sin(a) * 0.75);
   const l = Math.hypot(out.x, out.y, out.z);
   return leaf(
@@ -39,7 +35,6 @@ const leaves = Array.from({ length: 7 }, (_, k) => {
   );
 }).flat();
 
-/** A coin standing on edge, facing along `angle` around the ring. */
 const coin = (angle: number, tilt: number) => {
   const c = vec(34 * Math.cos(angle), -47, 34 * Math.sin(angle));
   const flat = lathe(

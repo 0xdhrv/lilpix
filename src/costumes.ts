@@ -1,12 +1,9 @@
 import type { Theme } from "./backgrounds.ts";
 import type { CostumeData } from "./costume-shapes.ts";
 
-// Each costume recolors the bot and adds a mesh from src/costumes/<name>: the
-// Halloween ones are traced from Vercel's Lil Pix nav logo, which morphs into
-// these heads on hover, and stored as JSON in bot units (see Costume.tsx); the
-// Diwali ones, one per day of the festival, are modeled in code.
+// Halloween costumes are meshes traced from Vercel's Lil Pix logo, stored as
+// JSON in bot units (see Costume.tsx); Diwali ones are modeled in code.
 type Look = {
-  /** Shell (body and ears). */
   shell: string;
   /** LED lenses while they're off. */
   leds: string;
@@ -17,9 +14,7 @@ type CostumeDef = Look & {
   label: string;
   /** Overrides for light mode. */
   light?: Partial<Look>;
-  /** Hangs upside down, like a bat from a branch. */
   upsideDown?: boolean;
-  /** Other names to search by. */
   aliases?: string[];
 };
 
@@ -201,7 +196,6 @@ export const COSTUME_NAMES = Object.keys(COSTUMES) as CostumeName[];
 /** cmdk item value for a costume; null is "No costume". */
 export const costumeValue = (name: CostumeName | null) => `costume-${name ?? "none"}`;
 
-/** Words the command menu finds a costume by. */
 export function costumeKeywords(name: CostumeName) {
   const costume: CostumeDef = COSTUMES[name];
   return [costume.label, ...(costume.aliases ?? []), name in DIWALI ? "diwali" : "halloween"];
@@ -212,12 +206,10 @@ export function costumeLook(name: CostumeName, theme: Theme): Look {
   return theme === "light" ? { ...costume, ...costume.light } : costume;
 }
 
-// Traced costumes are JSON meshes; modeled ones are modules that build theirs.
 const loaders = import.meta.glob<CostumeData>(["./costumes/*.json", "./costumes/*.ts"], {
   import: "default",
 });
 
-/** Loads a costume's meshes, from its JSON file or the module that builds them. */
 export const costumeLoader = (name: CostumeName) =>
   loaders[`./costumes/${name}.json`] ?? loaders[`./costumes/${name}.ts`];
 

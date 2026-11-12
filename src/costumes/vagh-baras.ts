@@ -1,8 +1,5 @@
 import { ball, blob, costume, lathe, rotate, tube, vec } from "../costume-shapes.ts";
 
-// Vagh Baras (Govatsa Dwadashi), the first day of Diwali, when cows and their
-// calves are worshipped: a calf with painted horns, floppy ears and a bell.
-
 const horns = [-1, 1].map((s) => [
   vec(22 * s, -39, 4),
   vec(27 * s, -47, 5),
@@ -19,7 +16,6 @@ const ear = (s: number) => {
   };
 };
 
-// A calf's brown patch, flat on the face or on top of the head.
 const patch = (c: [number, number], r: number, seed: number, top = false) => [
   Array.from({ length: 9 }, (_, k) => {
     const a = (k / 9) * Math.PI * 2;

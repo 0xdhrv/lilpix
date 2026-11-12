@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { festivalCostume } from "./festival.ts";
 
-// Local dates, as the festival calendar is.
 const DIWALI = new Date(2026, 10, 8, 9);
 const PLAIN_DAY = new Date(2026, 10, 20, 9);
 

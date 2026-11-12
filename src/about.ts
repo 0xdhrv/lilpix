@@ -2,23 +2,18 @@ import "./about.css";
 import "./sweep.ts";
 import { EXPRESSION_NAMES, eyeGrids, ledsFor } from "./expressions.ts";
 
-// Keep the theme in step with the app: the inline script in about/index.html
-// applies it before first paint; this follows changes made in other tabs and
-// changes to the system theme while nothing is saved.
+// about/index.html's inline script applies the theme before first paint.
 const dark = matchMedia("(prefers-color-scheme: dark)");
 function applyTheme() {
   let saved: unknown = null;
   try {
     saved = JSON.parse(localStorage.getItem("lilpix:theme") ?? "null");
-  } catch {
-    // Storage blocked or unreadable: follow the system.
-  }
+  } catch {}
   document.documentElement.dataset.theme =
     saved === "light" || saved === "dark" ? saved : dark.matches ? "dark" : "light";
   syncThemeButton();
 }
 
-// Nav toggle: same storage key as the app, so the choice carries over.
 const themeButton = document.getElementById("theme") as HTMLButtonElement;
 function syncThemeButton() {
   themeButton.setAttribute(
@@ -30,9 +25,7 @@ themeButton.addEventListener("click", () => {
   const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
   try {
     localStorage.setItem("lilpix:theme", JSON.stringify(next));
-  } catch {
-    // Storage blocked: the choice just won't carry over.
-  }
+  } catch {}
   applyTheme();
 });
 syncThemeButton();
@@ -41,9 +34,6 @@ addEventListener("storage", (event) => {
   if (event.key === "lilpix:theme" || event.key === null) applyTheme();
 });
 dark.addEventListener("change", applyTheme);
-
-// Fill the expression gallery from the same data the 3D bot uses, so the
-// about page never drifts from the app.
 
 function eye(rows: string[]) {
   const grid = document.createElement("span");
@@ -88,8 +78,7 @@ EXPRESSION_NAMES.forEach((name, i) => {
   list.append(item);
 });
 
-// Infinite carousel: a second, hidden copy makes the -50% loop seamless.
-// Speed stays constant however many expressions there are.
+// A second, hidden copy makes the -50% carousel loop seamless.
 const copies = [...list.children].map((item) => {
   const copy = item.cloneNode(true) as HTMLElement;
   copy.setAttribute("aria-hidden", "true");
@@ -98,7 +87,6 @@ const copies = [...list.children].map((item) => {
 list.append(...copies);
 list.style.setProperty("--duration", `${EXPRESSION_NAMES.length * 3}s`);
 
-// Hero face: cycles on its own, and on click. Reduced motion keeps it still until clicked.
 const moodScreen = document.getElementById("mood-screen")!;
 let mood = 0;
 function showMood() {
@@ -134,5 +122,4 @@ function fitAnatomy() {
 anatomy?.addEventListener("load", fitAnatomy);
 if (anatomy?.contentDocument?.readyState === "complete") fitAnatomy();
 
-// Dev-only feedback toolbar; the DEV check lets the bundler drop it from production.
 if (import.meta.env.DEV) void import("./dev-agentation.tsx");

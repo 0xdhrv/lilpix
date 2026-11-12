@@ -1,9 +1,6 @@
 import { ball, blob, costume, lathe, tube, vec } from "../costume-shapes.ts";
 import type { Vec } from "../costume-rig.ts";
 
-// Diwali (Lakshmi Puja): a clay diya burning on the head, and a string of
-// twinkling lights around it.
-
 // The diya's bowl, pinched to a spout along +x.
 const spout = (a: number) => 1 + 0.5 * Math.max(0, Math.cos(a)) ** 6;
 const BOWL: [number, number][] = [
@@ -29,10 +26,8 @@ const FLAME_OUTLINE =
   "M-0.6 -31.3C-0.2 -22.7 7.9 -18.1 8.1 -8.3C8.3 -1.0 4.7 2.3 0.0 2.3C-4.7 2.3 -8.4 -1.0 -8.6 -8.3C-8.8 -18.1 -1.5 -22.7 -0.6 -31.3Z";
 const flamePath = FLAME_OUTLINE.replace(/-?\d+(\.\d+)?/g, (n) => (Number(n) * 0.62).toFixed(2));
 
-// The string of lights runs round the head, sagging between hooks, with a
-// bulb hanging at the bottom of each sag. It follows the top edge across the
-// front and back, and drops to the tops of the ears (which stick out to ±44,
-// from y -35.4) along the sides, clear of them, so no bulb sinks into the shell.
+// Along the sides the string drops to the tops of the ears (which stick out to
+// ±44, from y -35.4), clear of them, so no bulb sinks into the shell.
 const SAGS = 26;
 const HOOKS = [
   vec(-40, -41, -42.5),

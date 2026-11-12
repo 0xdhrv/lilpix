@@ -1107,7 +1107,6 @@ function leds(t) {
     lenses[i].style.fillOpacity = ((0.15 + 0.85 * level) * seen).toFixed(2);
   }
   glassEl.style.opacity = seen.toFixed(3);
-  // Blink every 4 s and squash shut on a new face, as the 3D bot does.
   const shut = blinkAt > 0 || (!still.matches && t % 4 > 3.85);
   const sy = shut ? 0.1 : 1;
   const tr = `translate(0 ${-EYE_Z}) scale(1 ${sy}) translate(0 ${EYE_Z})`;

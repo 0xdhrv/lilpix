@@ -27,7 +27,6 @@ const loaded = new Map<CostumeName, CostumeData>();
 
 // The logo draws sprites mirrored, with y pointing down, at 44 units to an ear.
 const SPRITE_SCALE: [number, number, number] = [-8.85 / 44, -7.9 / 40, 1];
-// Spacing between stacked sprites, so later ones draw on top.
 const SPRITE_LAYER = 0.004;
 // Lil Spider's thread runs well out of frame, as if hung from the ceiling.
 const THREAD_LENGTH = 120;
@@ -44,8 +43,6 @@ const threadMaterial = new MeshStandardMaterial({
 const noRaycast = () => null;
 const svgLoader = new SVGLoader();
 
-// Fire and glowing parts (embers, and any part named glow…): unlit and pushed
-// past the bloom threshold, like the eyes.
 const glowing = (part: string) => part === "embers" || part.startsWith("glow");
 // Parts whose sprites only outline a fire; a live flame fills the outline instead.
 const FLAMES: Record<string, FlameKind> = { flame: "candle", fire: "campfire" };
@@ -83,7 +80,6 @@ function material(color: string, opacity = 1, side: Side = DoubleSide, part?: st
 }
 
 type Part = { geometry: BufferGeometry; material: Material; part?: string };
-/** Sprites turn about their anchor to face the camera, like the logo's billboards. */
 type SpritePart = Part & { at: [number, number, number] };
 type FlamePart = {
   part: string;
@@ -175,10 +171,6 @@ function reloadAfterFailedLoad(error: unknown) {
   location.reload();
 }
 
-/**
- * The costume meshes for the bot, loaded on first use. `pose` receives the
- * costume's head motion for the bot to apply.
- */
 export function Costume({
   name,
   pose,
@@ -189,7 +181,6 @@ export function Costume({
   reducedMotion: boolean;
 }) {
   const current = loaded.get(name);
-  // Bumped when a costume finishes loading, to re-render with it.
   const [, setLoads] = useState(0);
 
   useEffect(() => {
@@ -214,7 +205,6 @@ export function Costume({
     [built],
   );
 
-  // A fresh rig per costume; its clock starts on the first frame it's worn.
   const rig = useMemo(() => {
     const rig = new Rig();
     for (const [part, info] of Object.entries(current?.parts ?? {})) rig.define(part, info);
@@ -224,7 +214,6 @@ export function Costume({
   useEffect(() => () => void Object.assign(pose.current, restPose()), [pose, rig]);
 
   const root = useRef<ThreeGroup>(null);
-  // The rig last posed still, for reduced motion.
   const posed = useRef<Rig | null>(null);
 
   useFrame(({ clock }) => {
@@ -238,7 +227,6 @@ export function Costume({
       return;
     }
     const t = rig.since(clock.elapsedTime);
-    // Grows out of the head when put on.
     root.current?.scale.setScalar(Math.max(1e-3, growIn(t)));
     const head = MOTIONS[name]?.(t, rig);
     Object.assign(pose.current, restPose(), head);

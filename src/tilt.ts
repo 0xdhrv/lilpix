@@ -1,9 +1,5 @@
-// Device-orientation "look" input for phones. Bot reads this every frame
-// instead of the pointer once a sensor reading has arrived.
-
 /** Degrees of tilt that map to a full look (-1…1) in each direction. */
 const RANGE = 25;
-/** How quickly the neutral pose follows the way the phone is held. */
 const RECENTER = 0.01;
 
 export const tilt = { x: 0, y: 0, active: false };
@@ -29,14 +25,12 @@ function onOrientation(e: DeviceOrientationEvent) {
 
 type PermissionRequest = { requestPermission?: () => Promise<"granted" | "denied"> };
 
-/** True when the browser needs a user gesture before sending sensor data (iOS). */
 export const tiltNeedsPermission = () =>
   typeof (DeviceOrientationEvent as unknown as PermissionRequest).requestPermission === "function";
 
 /**
- * Start listening. On iOS, call from a user gesture so the permission prompt
- * can show. Resolves false when there was no gesture to ask from, so asking
- * again later may work; true once tilt is on or the user has said no.
+ * Resolves false when there was no gesture to ask from, so asking again later
+ * may work; true once tilt is on or the user has said no.
  */
 export async function enableTilt() {
   if (listening || typeof DeviceOrientationEvent === "undefined") return true;
