@@ -18,6 +18,47 @@ type CostumeDef = Look & {
   aliases?: string[];
 };
 
+const CHRISTMAS = {
+  santa: {
+    label: "Santa",
+    aliases: ["santa claus", "father christmas", "saint nick", "kris kringle", "ho ho ho"],
+    shell: "#b8232c",
+    leds: "#4f0d12",
+    screen: "#1c0507",
+    eyes: "#fff4e0",
+  },
+  reindeer: {
+    label: "Reindeer",
+    aliases: ["rudolph", "antlers", "sleigh", "red nose"],
+    shell: "#9c6b45",
+    leds: "#4a2f1b",
+    screen: "#1d120a",
+  },
+  snowman: {
+    label: "Snowman",
+    aliases: ["snow", "frosty", "carrot", "winter"],
+    shell: "#f3f5f8",
+    leds: "#9aa3b0",
+    screen: "#1b2230",
+    light: { shell: "#e4e8ee" },
+  },
+  tree: {
+    label: "Tree",
+    aliases: ["christmas tree", "fir", "star", "baubles", "ornaments"],
+    shell: "#1f5d3f",
+    leds: "#0b2618",
+    screen: "#06130c",
+    eyes: "#fff1c4",
+  },
+  gift: {
+    label: "Gift",
+    aliases: ["present", "ribbon", "bow", "box"],
+    shell: "#2a4d8f",
+    leds: "#122247",
+    screen: "#0a1226",
+  },
+} satisfies Record<string, CostumeDef>;
+
 const THANKSGIVING = {
   turkey: {
     label: "Turkey",
@@ -230,9 +271,14 @@ const HALLOWEEN = {
 } satisfies Record<string, CostumeDef>;
 
 // Newest first, as the menu lists them.
-const FESTIVALS = { thanksgiving: THANKSGIVING, diwali: DIWALI, halloween: HALLOWEEN };
+const FESTIVALS = {
+  christmas: CHRISTMAS,
+  thanksgiving: THANKSGIVING,
+  diwali: DIWALI,
+  halloween: HALLOWEEN,
+};
 
-export const COSTUMES = { ...THANKSGIVING, ...DIWALI, ...HALLOWEEN };
+export const COSTUMES = { ...CHRISTMAS, ...THANKSGIVING, ...DIWALI, ...HALLOWEEN };
 
 export type CostumeName = keyof typeof COSTUMES;
 
