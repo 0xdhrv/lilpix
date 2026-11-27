@@ -531,6 +531,59 @@ function fallingLeaves(t: number) {
   return parts;
 }
 
+// The Santa hat bends about its root, and its pompom hangs off the tip (see
+// costumes/santa.ts).
+const HAT_ROOT = vec(0, -46, 0);
+const HAT_TIP = vec(35, -75, 10);
+
+/** Bend a point of the hat about its root, the more the higher it is. */
+function bendHat(p: Vec, angle: number) {
+  const a = angle * clamp01((HAT_ROOT.y - p.y) / 44) ** 1.5;
+  const [dx, dy] = [p.x - HAT_ROOT.x, p.y - HAT_ROOT.y];
+  p.x = HAT_ROOT.x + dx * Math.cos(a) - dy * Math.sin(a);
+  p.y = HAT_ROOT.y + dx * Math.sin(a) + dy * Math.cos(a);
+}
+
+// Snowflakes drifting down past the snowman: where, and when.
+const FLAKES = Array.from({ length: 14 }, (_, i) => ({
+  x: (i % 2 ? 1 : -1) * (30 + 36 * hash(i + 21)),
+  z: -30 + 60 * hash(i + 33),
+  period: 5200 + 2400 * hash(i + 45),
+  delay: 380 * i,
+  size: 1.8 + 1.6 * hash(i + 57),
+}));
+
+function snowfall(t: number) {
+  const flakes: Vec[][] = [];
+  for (const [i, flake] of FLAKES.entries()) {
+    const local = t - flake.delay;
+    if (local < 0) continue;
+    const f = (local % flake.period) / flake.period;
+    const size = flake.size * smooth(f / 0.1) * smooth((1 - f) / 0.1);
+    if (size < 0.05) continue;
+    const x = flake.x + 6 * Math.sin(f * TAU + i);
+    const y = lerp(-100, 60, f);
+    const spin = local / 1400 + i;
+    // Six points, facing the viewer.
+    flakes.push(
+      Array.from({ length: 12 }, (_, k) => {
+        const a = spin + (k / 12) * TAU;
+        const r = k % 2 ? 0.45 * size : size;
+        return vec(x + r * Math.cos(a), y + r * Math.sin(a), flake.z);
+      }),
+    );
+  }
+  return flakes;
+}
+
+// Tree baubles, as [part, r, g, b]: each color glows in turn.
+const BAUBLES = [
+  ["glowA", 255, 59, 59],
+  ["glowB", 255, 201, 60],
+  ["glowC", 79, 168, 255],
+  ["glowD", 242, 244, 255],
+] as const;
+
 export const MOTIONS: Partial<Record<CostumeName, Motion>> = {
   frank: (t, rig) => {
     rig.turn("nutR", nutTurn(t));
@@ -962,5 +1015,70 @@ export const MOTIONS: Partial<Record<CostumeName, Motion>> = {
     const bend = spring(rig, "stem", t, -4 * roll + 0.35 * hop, 300, 0.12);
     rig.turn("stem", 0, 0, bend);
     return { roll, lift: -6 * hop + 0.4 * wave(t, 3900) };
+  },
+
+  santa: (t, rig) => {
+    // Every so often a hearty ho ho ho: three bounces, each smaller.
+    const ho = [0, 300, 600].reduce(
+      (sum, delay, i) => sum + (1 - 0.25 * i) * pulse(t - delay, 6800, 1800, 110, 30, 160, 0.3),
+      0,
+    );
+    const roll = 0.02 * wave(t, 4600);
+    const bend = spring(rig, "hat", t, -3 * roll + 0.12 * ho + 0.05 * wave(t, 2700), 360, 0.12);
+    rig.deform("hat", (p) => bendHat(p, bend));
+    const tip = vec(HAT_TIP.x, HAT_TIP.y, HAT_TIP.z);
+    bendHat(tip, bend);
+    rig.shift("pompom", tip.x - HAT_TIP.x, tip.y - HAT_TIP.y);
+    return { roll, lift: -3 * ho + 0.5 * wave(t, 3400) };
+  },
+
+  reindeer: (t, rig) => {
+    // Now and then the nose flares bright, twice over.
+    const flare =
+      pulse(t, 5200, 1200, 120, 60, 260, 0.4) + pulse(t - 420, 5200, 1200, 120, 60, 260, 0.4);
+    const k = 0.75 + 0.15 * wave(t, 1800) + 0.9 * flare;
+    rig.color("glowNose", 255 * k, 59 * k, 48 * k);
+    // Each ear flicks on its own.
+    for (const [part, side, delay] of [
+      ["earL", -1, 900],
+      ["earR", 1, 2600],
+    ] as const) {
+      const flick = pulse(t, 4400, delay, 90, 40, 220, 0.5);
+      rig.turn(part, 0, 0, spring(rig, part, t, side * 0.35 * flick, 160, 0.2));
+    }
+    return {
+      pitch: 0.03 * wave(t, 3800),
+      lift: 0.6 * wave(t, 3800, 0.25),
+      roll: 0.015 * wave(t, 6100),
+    };
+  },
+
+  snowman: (t, rig) => {
+    rig.polygons("snow", snowfall(t));
+    // Now and then the right arm waves hello.
+    const hello = pulse(t, 7200, 1600, 300, 1200, 400, 0.4);
+    rig.turn("armR", 0, 0, hello * (0.35 + 0.2 * wave(t, 420)));
+    rig.turn("armL", 0, 0, 0.05 * wave(t, 3300));
+    const roll = 0.02 * wave(t, 4400);
+    rig.turn("hat", 0, 0, spring(rig, "hat", t, -2 * roll, 420, 0.2));
+    return { roll, lift: 0.5 * wave(t, 3600) };
+  },
+
+  tree: (t, rig) => {
+    BAUBLES.forEach(([part, r, g, b], i) => {
+      const k = 0.45 + 1.1 * smooth(0.5 + 0.7 * wave(t, 3100, -i / 4));
+      rig.color(part, r * k, g * k, b * k);
+    });
+    rig.turn("glowStar", 0, t / 1600, 0);
+    return { roll: 0.02 * wave(t, 5000), lift: 0.5 * wave(t, 3400) };
+  },
+
+  gift: (t, rig) => {
+    // Every so often someone shakes it, trying to guess what's inside.
+    const shake = pulse(t, 5600, 1400, 120, 700, 220, 0.4);
+    const rattle = shake * wave(t, 170);
+    const roll = 0.05 * rattle + 0.012 * wave(t, 4800);
+    rig.turn("bow", 0, 0, spring(rig, "bow", t, -2.5 * roll, 200, 0.12));
+    return { roll, yaw: 0.04 * rattle, lift: -1.5 * shake + 0.4 * wave(t, 3600) };
   },
 };

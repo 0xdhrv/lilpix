@@ -17,6 +17,9 @@ const DAYS: Record<string, CostumeName> = {
   "2026-11-27": "turkey",
   "2026-11-28": "turkey",
   "2026-11-29": "turkey",
+  // Christmas Eve and Christmas Day.
+  "2026-12-24": "santa",
+  "2026-12-25": "santa",
 };
 
 const KEY = "lilpix:dressed-for";
