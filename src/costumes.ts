@@ -2,7 +2,7 @@ import type { Theme } from "./backgrounds.ts";
 import type { CostumeData } from "./costume-shapes.ts";
 
 // Halloween costumes are meshes traced from Vercel's Lil Pix logo, stored as
-// JSON in bot units (see Costume.tsx); Diwali ones are modeled in code.
+// JSON in bot units (see Costume.tsx); later festivals' are modeled in code.
 type Look = {
   shell: string;
   /** LED lenses while they're off. */
@@ -17,6 +17,48 @@ type CostumeDef = Look & {
   upsideDown?: boolean;
   aliases?: string[];
 };
+
+const THANKSGIVING = {
+  turkey: {
+    label: "Turkey",
+    aliases: ["gobble", "tom", "feathers", "tail fan"],
+    shell: "#8b5a35",
+    leds: "#3a2414",
+    screen: "#1a0f08",
+    eyes: "#fff1d6",
+  },
+  pilgrim: {
+    label: "Pilgrim",
+    aliases: ["buckle hat", "capotain", "mayflower"],
+    shell: "#efe6d4",
+    leds: "#8f8471",
+    screen: "#211d17",
+    light: { shell: "#e2d8c4" },
+  },
+  "pumpkin-pie": {
+    label: "Pumpkin Pie",
+    aliases: ["pie", "dessert", "whipped cream", "slice"],
+    shell: "#f3d7a6",
+    leds: "#9a7444",
+    screen: "#2a1c0e",
+    light: { shell: "#ecca90" },
+  },
+  maple: {
+    label: "Maple",
+    aliases: ["autumn", "fall", "leaves", "harvest"],
+    shell: "#3e5a3b",
+    leds: "#1a2a19",
+    screen: "#0c140b",
+    eyes: "#ffe2a8",
+  },
+  acorn: {
+    label: "Acorn",
+    aliases: ["oak", "nut", "squirrel"],
+    shell: "#c98d45",
+    leds: "#5e3c17",
+    screen: "#24170a",
+  },
+} satisfies Record<string, CostumeDef>;
 
 // In festival order, named as in Gujarat.
 const DIWALI = {
@@ -187,7 +229,10 @@ const HALLOWEEN = {
   },
 } satisfies Record<string, CostumeDef>;
 
-export const COSTUMES = { ...DIWALI, ...HALLOWEEN };
+// Newest first, as the menu lists them.
+const FESTIVALS = { thanksgiving: THANKSGIVING, diwali: DIWALI, halloween: HALLOWEEN };
+
+export const COSTUMES = { ...THANKSGIVING, ...DIWALI, ...HALLOWEEN };
 
 export type CostumeName = keyof typeof COSTUMES;
 
@@ -198,7 +243,8 @@ export const costumeValue = (name: CostumeName | null) => `costume-${name ?? "no
 
 export function costumeKeywords(name: CostumeName) {
   const costume: CostumeDef = COSTUMES[name];
-  return [costume.label, ...(costume.aliases ?? []), name in DIWALI ? "diwali" : "halloween"];
+  const festival = Object.entries(FESTIVALS).find(([, costumes]) => name in costumes)?.[0];
+  return [costume.label, ...(costume.aliases ?? []), ...(festival ? [festival] : [])];
 }
 
 export function costumeLook(name: CostumeName, theme: Theme): Look {

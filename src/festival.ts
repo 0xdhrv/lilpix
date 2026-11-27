@@ -1,8 +1,9 @@
 import type { CostumeName } from "./costumes.ts";
 
-// The costume for each day of Diwali 2026, by local date, as the Gujarati
-// calendar has them (Drik Panchang). Add each year's dates as they're set.
+// The costume for each festival day, by local date. Add each year's dates as
+// they're set.
 const DAYS: Record<string, CostumeName> = {
+  // Diwali 2026, as the Gujarati calendar has it (Drik Panchang).
   "2026-11-05": "vagh-baras",
   "2026-11-06": "dhanteras",
   "2026-11-07": "kali-chaudas",
@@ -11,6 +12,11 @@ const DAYS: Record<string, CostumeName> = {
   "2026-11-09": "diwali",
   "2026-11-10": "bestu-varas",
   "2026-11-11": "bhai-bij",
+  // US Thanksgiving, the fourth Thursday of November, and its long weekend.
+  "2026-11-26": "turkey",
+  "2026-11-27": "turkey",
+  "2026-11-28": "turkey",
+  "2026-11-29": "turkey",
 };
 
 const KEY = "lilpix:dressed-for";
