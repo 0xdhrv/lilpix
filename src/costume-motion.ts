@@ -1,6 +1,6 @@
 import type { CostumeName } from "./costumes.ts";
 import type { Pose, Rig, Vec } from "./costume-rig.ts";
-import { ball, disc, tube, vec } from "./costume-shapes.ts";
+import { ball, disc, mapleLeaf, tube, vec } from "./costume-shapes.ts";
 
 // Times are in milliseconds since the costume went on; positions and angles
 // are in the logo's head coordinates (see costume-rig.ts). Meshes were captured
@@ -478,6 +478,59 @@ function fireworks(t: number) {
   return shells;
 }
 
+// The turkey's tail fans out from here (see costumes/turkey.ts).
+const FAN = vec(0, -8, 46);
+
+/** The tail's spread, 1 at full display, folding in between strutting. */
+function strut(t: number) {
+  const show = pulse(t, 5600, 900, 420, 1500, 700, 0.35);
+  return lerp(0.8, 1, show) + 0.012 * show * wave(t, 90);
+}
+
+// Maple leaves drifting down past the head: which part, where, and when.
+const FALLING = Array.from({ length: 6 }, (_, i) => ({
+  part: ["fallA", "fallB", "fallC"][i % 3],
+  side: i % 2 ? 1 : -1,
+  x: 52 + 9 * hash(i + 4),
+  z: -24 + 48 * hash(i + 9),
+  period: 6200 + 1800 * hash(i + 1),
+  delay: 700 * i,
+  size: 11 + 4 * hash(i + 2),
+}));
+
+function fallingLeaves(t: number) {
+  const parts: Record<string, Vec[][]> = { fallA: [], fallB: [], fallC: [] };
+  for (const [i, leaf] of FALLING.entries()) {
+    const local = t - leaf.delay;
+    if (local < 0) continue;
+    const f = (local % leaf.period) / leaf.period;
+    // Grow in at the top and shrink out at the bottom, rather than pop.
+    const size = leaf.size * smooth(f / 0.12) * smooth((1 - f) / 0.12);
+    if (size < 0.05) continue;
+    const spin = local / 900 + i;
+    const tumble = 0.9 * Math.sin(local / 700 + 2 * i);
+    const up = vec(
+      Math.sin(spin) * Math.cos(tumble),
+      -Math.cos(spin) * Math.cos(tumble),
+      Math.sin(tumble),
+    );
+    const across = vec(Math.cos(spin), Math.sin(spin), 0);
+    const centre = vec(
+      leaf.side * (leaf.x + 8 * Math.sin(f * TAU * 1.5 + i)),
+      lerp(-96, 58, f),
+      leaf.z,
+    );
+    // From its centre, so it tumbles about its middle.
+    const base = vec(
+      centre.x - (up.x * size) / 2,
+      centre.y - (up.y * size) / 2,
+      centre.z - (up.z * size) / 2,
+    );
+    parts[leaf.part].push(...mapleLeaf(base, up, across, size));
+  }
+  return parts;
+}
+
 export const MOTIONS: Partial<Record<CostumeName, Motion>> = {
   frank: (t, rig) => {
     rig.turn("nutR", nutTurn(t));
@@ -857,5 +910,57 @@ export const MOTIONS: Partial<Record<CostumeName, Motion>> = {
   "bhai-bij": (t, rig) => {
     rig.turn("kalgi", 0.08 * wave(t, 2300), 0, 0.1 * wave(t, 3100, 0.2));
     return { lift: 0.5 * wave(t, 3100), roll: 0.015 * wave(t, 5200) };
+  },
+
+  turkey: (t, rig) => {
+    const spread = strut(t);
+    rig.deform("tail", (p) => {
+      const dx = p.x - FAN.x;
+      const dy = p.y - FAN.y;
+      const a = Math.atan2(dx, -dy) * spread;
+      const r = Math.hypot(dx, dy);
+      p.x = FAN.x + r * Math.sin(a);
+      p.y = FAN.y - r * Math.cos(a);
+    });
+    // A double bob of the head: the gobble.
+    const gobble =
+      pulse(t, 4300, 1600, 90, 40, 160, 0.4) + 0.6 * pulse(t - 260, 4300, 1600, 90, 40, 160, 0.4);
+    const pitch = 0.07 * gobble + 0.015 * wave(t, 3200);
+    rig.turn("wattle", spring(rig, "wattle", t, -4 * pitch, 260, 0.15));
+    const flap = 0.22 * (spread - 0.8) * 5;
+    rig.turn("wingL", 0, 0, -flap);
+    rig.turn("wingR", 0, 0, flap);
+    return { pitch, lift: 0.5 * wave(t, 3200, 0.25) };
+  },
+
+  pilgrim: (t, rig) => {
+    const tip = pulse(t, 6400, 1800, 280, 420, 560, 0.4);
+    const roll = 0.02 * wave(t, 4800);
+    rig.turn("hat", -0.22 * tip, 0, spring(rig, "hat", t, -2 * roll, 420, 0.2));
+    rig.shift("hat", 0, -7 * tip);
+    return { roll, pitch: 0.04 * tip, lift: 0.5 * wave(t, 3600) };
+  },
+
+  "pumpkin-pie": (t, rig) => {
+    const lift = 1.2 * wave(t, 2800);
+    const squash = spring(rig, "cream", t, 0.05 * wave(t, 2800, 0.15), 240, 0.18);
+    rig.scale("cream", 1 + squash, 1 - 1.4 * squash, 1 + squash);
+    return { lift, roll: 0.015 * wave(t, 5200) };
+  },
+
+  maple: (t, rig) => {
+    for (const [part, leaves] of Object.entries(fallingLeaves(t))) rig.polygons(part, leaves);
+    const roll = 0.025 * wave(t, 5400);
+    rig.turn("crown", 0.02 * wave(t, 1900), 0, spring(rig, "crown", t, -1.5 * roll, 500, 0.25));
+    return { roll, lift: 0.5 * wave(t, 3400) };
+  },
+
+  acorn: (t, rig) => {
+    // Now and then it hops, and the stem whips after it.
+    const hop = pulse(t, 4800, 1400, 220, 0, 380, 0.4);
+    const roll = 0.02 * wave(t, 3900);
+    const bend = spring(rig, "stem", t, -4 * roll + 0.35 * hop, 300, 0.12);
+    rig.turn("stem", 0, 0, bend);
+    return { roll, lift: -6 * hop + 0.4 * wave(t, 3900) };
   },
 };

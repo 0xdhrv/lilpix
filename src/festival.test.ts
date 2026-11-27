@@ -24,6 +24,7 @@ describe("festivalCostume", () => {
     expect(festivalCostume(DIWALI)).toBe("diwali");
     expect(festivalCostume(new Date(2026, 10, 8, 22))).toBeNull();
     expect(festivalCostume(new Date(2026, 10, 10, 9))).toBe("bestu-varas");
+    expect(festivalCostume(new Date(2026, 10, 27, 9))).toBe("turkey");
   });
 
   it("dresses up every visit when storage is blocked", () => {

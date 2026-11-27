@@ -171,6 +171,41 @@ export function leaf(base: Vec, dir: Vec, side: Vec, length: number, width: numb
   return [[...edge.map((u) => at(u, half(u))), ...[...edge].reverse().map((u) => at(u, -half(u)))]];
 }
 
+// Right half of a maple leaf, stem to tip, two units tall.
+const MAPLE_HALF: [number, number][] = [
+  [0.32, 0.08],
+  [0.78, 0.4],
+  [0.58, 0.6],
+  [1.08, 0.98],
+  [1.02, 1.42],
+  [0.62, 1.22],
+  [0.5, 1.18],
+  [0.44, 1.58],
+  [0.2, 1.52],
+  [0, 2.05],
+];
+const MAPLE = [
+  [0, 0.2],
+  ...MAPLE_HALF,
+  ...MAPLE_HALF.slice(0, -1)
+    .reverse()
+    .map(([u, v]) => [-u, v]),
+] as [number, number][];
+
+/** A flat maple leaf from `base`, `size` long along `up`, lying in the plane of `up` and `across`. */
+export function mapleLeaf(base: Vec, up: Vec, across: Vec, size: number) {
+  const k = size / 2;
+  return [
+    MAPLE.map(([u, v]) =>
+      vec(
+        base.x + (across.x * u + up.x * v) * k,
+        base.y + (across.y * u + up.y * v) * k,
+        base.z + (across.z * u + up.z * v) * k,
+      ),
+    ),
+  ];
+}
+
 const ORIGIN: [number, number, number] = [0, 0, 0];
 
 type PieceSpec = {
